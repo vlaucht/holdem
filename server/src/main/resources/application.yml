@@ -1,0 +1,5 @@
+poker-game-settings:
+  max-players: 6
+  time-to-raise-blinds: 20
+  time-per-player-move: 3.5
+  total-tournament-time: 180
