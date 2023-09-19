@@ -14,7 +14,8 @@ public class PokerPlayer extends Player {
 
     /** boolean to indicate if the player is folded */
     @Accessors(fluent = true)
-    private boolean isFolded;
+    @Setter
+    protected boolean isFolded;
 
     /** boolean to indicate if the player is all in */
     @Accessors(fluent = true)

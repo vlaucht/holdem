@@ -8,6 +8,7 @@ import de.thm.holdem.service.PokerHandEvaluator;
 import de.thm.holdem.settings.PokerGameSettings;
 import jdk.jshell.spi.ExecutionControl;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -28,10 +29,11 @@ public class PokerGame extends Game {
      *      END: Hands of the players will be evaluated and round ends
      * </p>
      */
-    private enum State { PRE_FLOP, FLOP, TURN, RIVER, END }
+    enum State { PRE_FLOP, FLOP, TURN, RIVER, END }
 
     /** Stores the set of cards used to play the game */
-    private final Deck deck;
+    @Setter
+    protected Deck deck;
 
     /** Identifier of the game */
     private final String gameId;
@@ -52,7 +54,8 @@ public class PokerGame extends Game {
     int currentBlindLevel;
 
     /** A list of all small blind levels */
-    private List<Integer> smallBlindLevels;
+    @Setter
+    protected List<Integer> smallBlindLevels;
 
     /** Stores the 3 flop cards (first 3 cards dealt on the table) */
     private List<Card> flopCards;
@@ -67,19 +70,23 @@ public class PokerGame extends Game {
     private int currentBet;
 
     /** Indicates in which round the game is currently in */
-    private State state;
+    @Setter
+    protected State state;
 
     /** The player with the dealer position */
     private PokerPlayer dealer;
 
     /** The player with the small-blind position */
-    private PokerPlayer smallBlindPlayer;
+    @Setter
+    protected PokerPlayer smallBlindPlayer;
 
     /** The player with the big-blind position */
-    private PokerPlayer bigBlindPlayer;
+    @Setter
+    protected PokerPlayer bigBlindPlayer;
 
     /** The player who is currently making an action */
-    private PokerPlayer activePlayer;
+    @Setter
+    protected PokerPlayer activePlayer;
 
     /**
      * Constructor for the poker game
@@ -116,6 +123,7 @@ public class PokerGame extends Game {
             throw new Exception("Game is already running");
         }
         if (!playerList.contains(player) && playerList.size() < settings.getMaxPlayers()) {
+            player.joinGame(buyIn);
             playerList.add(player);
             if(playerList.size() == settings.getMaxPlayers()) {
                 startGame();
@@ -130,25 +138,38 @@ public class PokerGame extends Game {
      *     The game will only be started if at least 3 players have joined the game and the game is not already running
      *     A new deck will be created, the game will be set to running and dealer, small-blind and big-blind positions will be assigned
      * </p>
-     *
-     * @return (boolean) returns whether the game has started
      */
-    public boolean startGame() {
-        if (this.gameStatus.equals(GameStatus.IN_PROGRESS) || this.gameStatus.equals(GameStatus.FINISHED)) return false;
-        if(playerList.size() < 3) return false;
-        this.gameStatus = GameStatus.IN_PROGRESS;
+    public void startGame() throws Exception {
+        if (gameStatus.equals(GameStatus.IN_PROGRESS) || gameStatus.equals(GameStatus.FINISHED)) {
+            throw new Exception("Game is already running");
+        }
+
+        if(playerList.size() < 3) {
+            throw new Exception("Not enough players to start the game");
+        }
+
+        gameStatus = GameStatus.IN_PROGRESS;
         dealer = (PokerPlayer) playerList.get(0);
         bigBlindPlayer = (PokerPlayer) playerList.get(2);
         smallBlindPlayer = (PokerPlayer) playerList.get(1);
         smallBlindLevels = BlindHelper.calculateBlindLevels(playerList.size(),
                 buyIn, settings.getTotalTournamentTime(), settings.getTimeToRaiseBlinds());
-        return true;
+    }
+
+    /**
+     * Method to increase the blind level
+     */
+    public void raiseBlinds() {
+        currentBlindLevel++;
     }
 
     /**
      * Method to deal cards to the players of the game and set blinds
      */
-    public void deal() {
+    public void deal() throws Exception {
+        if (!gameStatus.equals(GameStatus.IN_PROGRESS)) {
+            throw new Exception("Game has not started yet.");
+        }
         state = State.PRE_FLOP;
         deck.shuffleDeck();
 
@@ -172,7 +193,7 @@ public class PokerGame extends Game {
      *
      * @param player the player whose turn it currently is
      */
-    private void getNextTurn(PokerPlayer player) {
+    void getNextTurn(PokerPlayer player) {
         if(state == State.END) return;
 
         activePlayer = (PokerPlayer) TurnManager.getNext(playerList, player, true);
