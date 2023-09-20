@@ -1,5 +1,6 @@
 package de.thm.holdem.model.player;
 
+import de.thm.holdem.exception.GameActionException;
 import de.thm.holdem.model.card.Card;
 import de.thm.holdem.model.card.Rank;
 import de.thm.holdem.model.card.Suit;
@@ -40,7 +41,7 @@ class PokerPlayerTest {
     }
 
     @Test
-    void Should_NotReturnActiveChipsToPlayer_If_PlayerLeavesGame() {
+    void Should_NotReturnActiveChipsToPlayer_If_PlayerLeavesGame() throws GameActionException {
         pokerPlayer.joinGame(buyIn);
         pokerPlayer.bet(50);
         pokerPlayer.leaveGame();
@@ -48,7 +49,7 @@ class PokerPlayerTest {
         assertEquals(bankroll - 50, pokerPlayer.getBankroll());
     }
     @Test
-    public void Should_DealCardsToPlayer() {
+    public void Should_DealCardsToPlayer() throws GameActionException {
         Card card1 = new Card(Rank.ACE, Suit.HEARTS);
         Card card2 = new Card(Rank.KING, Suit.SPADES);
 
@@ -61,7 +62,7 @@ class PokerPlayerTest {
     }
 
     @Test
-    public void Should_ThrowException_If_PlayerGetsTooManyCards() {
+    public void Should_ThrowException_If_PlayerGetsTooManyCards() throws GameActionException {
         Card card1 = new Card(Rank.ACE, Suit.HEARTS);
         Card card2 = new Card(Rank.KING, Suit.SPADES);
         Card card3 = new Card(Rank.QUEEN, Suit.DIAMONDS);
@@ -69,11 +70,11 @@ class PokerPlayerTest {
         pokerPlayer.dealCard(card1);
         pokerPlayer.dealCard(card2);
 
-        assertThrows(IllegalStateException.class, () -> pokerPlayer.dealCard(card3));
+        assertThrows(GameActionException.class, () -> pokerPlayer.dealCard(card3));
     }
 
     @Test
-    void Should_DeductBetFromAvailableChips() {
+    void Should_DeductBetFromAvailableChips() throws GameActionException {
         pokerPlayer.joinGame(buyIn);
         pokerPlayer.bet(50);
 
@@ -83,12 +84,12 @@ class PokerPlayerTest {
 
     @Test
     public void Should_ThrowException_If_BetIsNegative() {
-        assertThrows(IllegalArgumentException.class, () -> pokerPlayer.bet(-50));
+        assertThrows(GameActionException.class, () -> pokerPlayer.bet(-50));
     }
 
     @Test
     public void Should_ThrowException_If_NotEnoughChipsForBet() {
-        assertThrows(IllegalArgumentException.class, () -> pokerPlayer.bet(1001));
+        assertThrows(GameActionException.class, () -> pokerPlayer.bet(1001));
     }
 
     @Test
@@ -114,7 +115,7 @@ class PokerPlayerTest {
     }
 
     @Test
-    public void Should_ResetPlayer() {
+    public void Should_ResetPlayer() throws GameActionException {
         pokerPlayer.joinGame(buyIn);
         pokerPlayer.bet(50);
         pokerPlayer.fold();

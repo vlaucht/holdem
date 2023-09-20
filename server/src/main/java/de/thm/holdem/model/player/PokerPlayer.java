@@ -1,5 +1,6 @@
 package de.thm.holdem.model.player;
 
+import de.thm.holdem.exception.GameActionException;
 import de.thm.holdem.model.card.Card;
 import de.thm.holdem.model.game.PokerPlayerAction;
 import lombok.Getter;
@@ -14,21 +15,22 @@ public class PokerPlayer extends Player {
 
     /** boolean to indicate if the player is folded */
     @Accessors(fluent = true)
-    @Setter
     protected boolean isFolded;
 
     /** boolean to indicate if the player is all in */
     @Accessors(fluent = true)
-    private boolean isAllIn;
+    protected boolean isAllIn;
 
     /** The score of the players hand */
     private int handScore;
 
     /** The cards the player has on his hand */
-    private final List<Card> hand;
-
     @Setter
-    private PokerPlayerAction lastAction;
+    protected List<Card> hand;
+
+    /** The last action performed by the player */
+    @Setter
+    protected PokerPlayerAction lastAction;
 
     public PokerPlayer(String alias) {
         super(alias);
@@ -42,9 +44,9 @@ public class PokerPlayer extends Player {
      *
      * @param card the card to be dealt
      */
-    public void dealCard(Card card) {
+    public void dealCard(Card card) throws GameActionException {
         if (this.hand.size() >= 2) {
-            throw new IllegalStateException("Player already has two cards.");
+            throw new GameActionException("Player already has two cards.");
         }
         this.hand.add(card);
     }
@@ -72,11 +74,14 @@ public class PokerPlayer extends Player {
         super.reset();
         this.isFolded = false;
         this.isAllIn = false;
+        this.lastAction = null;
+        this.handScore = 0;
         this.hand.clear();
     }
 
 
     public void setHandScore(int score) {
+        System.out.println(this);
         this.handScore = score;
     }
 

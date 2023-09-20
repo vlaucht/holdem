@@ -1,6 +1,8 @@
 package de.thm.holdem.model.player;
 
+import de.thm.holdem.exception.GameActionException;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.Objects;
 
@@ -17,8 +19,10 @@ public abstract class Player {
 
     protected int bankroll;
 
+    @Setter
     protected int chips;
 
+    @Setter
     protected int currentBet;
 
     Player(String alias) {
@@ -102,12 +106,12 @@ public abstract class Player {
      *
      * @param amount the amount of chips to bet
      */
-    public void bet(int amount) {
+    public void bet(int amount) throws GameActionException {
         if (amount < 0) {
-            throw new IllegalArgumentException("Bet amount cannot be negative");
+            throw new GameActionException("Bet amount cannot be negative");
         }
         if (amount > this.chips) {
-            throw new IllegalArgumentException("Not enough chips to bet");
+            throw new GameActionException("Not enough chips to bet");
         }
         this.chips -= amount;
         this.currentBet += amount;
