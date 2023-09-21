@@ -1,4 +1,4 @@
-package de.thm.holdem.model.game;
+package de.thm.holdem.model.game.poker;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,12 +1,15 @@
-package de.thm.holdem.model.game;
+package de.thm.holdem.model.game.poker;
 
 import de.thm.holdem.exception.GameActionException;
 import de.thm.holdem.exception.IllegalGameActionException;
 import de.thm.holdem.model.card.Card;
 import de.thm.holdem.model.card.Deck;
+import de.thm.holdem.model.game.Game;
+import de.thm.holdem.model.game.GameStatus;
+import de.thm.holdem.utils.TurnManager;
 import de.thm.holdem.model.player.Player;
 import de.thm.holdem.model.player.PokerPlayer;
-import de.thm.holdem.service.PokerHandEvaluator;
+import de.thm.holdem.utils.PokerHandEvaluator;
 import de.thm.holdem.settings.PokerGameSettings;
 import de.thm.holdem.utils.ClassFactory;
 import jdk.jshell.spi.ExecutionControl;
@@ -15,10 +18,12 @@ import lombok.Getter;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
+
 
 @Getter
 public class PokerGame extends Game {
+
+    private String id;
 
     /**
      * Enum which returns all possible states the game can be in
@@ -35,9 +40,6 @@ public class PokerGame extends Game {
 
     /** Stores the set of cards used to play the game */
     protected Deck deck;
-
-    /** Identifier of the game */
-    private final String gameId;
 
     /** Settings of the game */
     private final PokerGameSettings settings;
@@ -102,7 +104,6 @@ public class PokerGame extends Game {
         playerList = new ArrayList<>(6);
         playerList.add(creator);
         this.gameStatus = GameStatus.WAITING;
-        this.gameId = UUID.randomUUID().toString();
         this.deck = new Deck();
         this.currentBlindLevel = 0;
         this.evaluatorFactory = new ClassFactory<>(PokerHandEvaluator.class);

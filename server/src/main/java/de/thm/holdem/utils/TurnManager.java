@@ -1,4 +1,4 @@
-package de.thm.holdem.model.game;
+package de.thm.holdem.utils;
 
 import java.util.Collection;
 import java.util.Iterator;

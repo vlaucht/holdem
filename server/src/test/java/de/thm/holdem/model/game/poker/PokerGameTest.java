@@ -1,15 +1,18 @@
-package de.thm.holdem.model.game;
+package de.thm.holdem.model.game.poker;
 
 import de.thm.holdem.exception.GameActionException;
 import de.thm.holdem.exception.IllegalGameActionException;
 import de.thm.holdem.model.card.Card;
 import de.thm.holdem.model.card.Rank;
 import de.thm.holdem.model.card.Suit;
-import de.thm.holdem.model.player.Player;
+import de.thm.holdem.model.game.GameStatus;
+import de.thm.holdem.model.game.poker.PokerGame;
+import de.thm.holdem.model.game.poker.PokerPlayerAction;
 import de.thm.holdem.model.player.PokerPlayer;
-import de.thm.holdem.service.PokerHandEvaluator;
+import de.thm.holdem.utils.PokerHandEvaluator;
 import de.thm.holdem.settings.PokerGameSettings;
 import de.thm.holdem.utils.ClassFactory;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -75,7 +78,7 @@ class PokerGameTest {
         pokerGame.addPlayer(new PokerPlayer("Player3"));
         pokerGame.addPlayer(new PokerPlayer("Player4"));
 
-        assertEquals(GameStatus.IN_PROGRESS, pokerGame.getGameStatus());
+        Assertions.assertEquals(GameStatus.IN_PROGRESS, pokerGame.getGameStatus());
     }
 
     @Test

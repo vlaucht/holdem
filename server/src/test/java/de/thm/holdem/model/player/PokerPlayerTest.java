@@ -12,8 +12,8 @@ import static org.junit.jupiter.api.Assertions.*;
 class PokerPlayerTest {
 
     private PokerPlayer pokerPlayer;
-    private final int buyIn = 100;
-    private final int bankroll = 1000;
+    private final int buyIn = 1000;
+    private final int bankroll = 10000;
 
     @BeforeEach
     void setUp() {
@@ -79,7 +79,7 @@ class PokerPlayerTest {
         pokerPlayer.bet(50);
 
         assertEquals(50, pokerPlayer.getCurrentBet());
-        assertEquals(50, pokerPlayer.getChips());
+        assertEquals(buyIn - 50, pokerPlayer.getChips());
     }
 
     @Test
@@ -97,7 +97,7 @@ class PokerPlayerTest {
         pokerPlayer.joinGame(buyIn);
         pokerPlayer.win(10);
 
-        assertEquals(110, pokerPlayer.getChips());
+        assertEquals(buyIn + 10, pokerPlayer.getChips());
     }
 
     @Test
@@ -111,7 +111,7 @@ class PokerPlayerTest {
     public void Should_AddToBankroll() {
         pokerPlayer.addToBankroll(500);
 
-        assertEquals(1500, pokerPlayer.getBankroll());
+        assertEquals(bankroll + 500, pokerPlayer.getBankroll());
     }
 
     @Test
@@ -127,7 +127,7 @@ class PokerPlayerTest {
         assertEquals(0, pokerPlayer.getHand().size());
         // should keep chips and bankroll
         assertEquals(buyIn - 50, pokerPlayer.getChips());
-        assertEquals(bankroll - 100, pokerPlayer.getBankroll());
+        assertEquals(bankroll - buyIn, pokerPlayer.getBankroll());
     }
 
 

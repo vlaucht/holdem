@@ -3,6 +3,8 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/HoldEmSpring.iml" filepath="$PROJECT_DIR$/.idea/HoldEmSpring.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/holdem.main.iml" filepath="$PROJECT_DIR$/.idea/modules/holdem.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/holdem.test.iml" filepath="$PROJECT_DIR$/.idea/modules/holdem.test.iml" />
     </modules>
   </component>
 </project>

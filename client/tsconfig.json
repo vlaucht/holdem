@@ -12,6 +12,7 @@
     "allowSyntheticDefaultImports": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
+    "sourceMap": true,
     "noFallthroughCasesInSwitch": true,
     "module": "esnext",
     "moduleResolution": "node",
@@ -22,5 +23,11 @@
   },
   "include": [
     "src"
+  ],
+  "exclude": [
+    "**.test.ts",
+    "**.test.tsx",
+    "*.css",
+    "node_modules"
   ]
 }

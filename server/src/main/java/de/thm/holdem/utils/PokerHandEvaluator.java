@@ -1,4 +1,4 @@
-package de.thm.holdem.service;
+package de.thm.holdem.utils;
 
 import de.thm.holdem.model.card.Card;
 import de.thm.holdem.model.card.Suit;

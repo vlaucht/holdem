@@ -1,5 +1,6 @@
-package de.thm.holdem.model.game;
+package de.thm.holdem.utils;
 
+import de.thm.holdem.utils.TurnManager;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;

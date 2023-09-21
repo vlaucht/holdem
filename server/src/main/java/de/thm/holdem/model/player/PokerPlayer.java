@@ -2,7 +2,7 @@ package de.thm.holdem.model.player;
 
 import de.thm.holdem.exception.GameActionException;
 import de.thm.holdem.model.card.Card;
-import de.thm.holdem.model.game.PokerPlayerAction;
+import de.thm.holdem.model.game.poker.PokerPlayerAction;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;

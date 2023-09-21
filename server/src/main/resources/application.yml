@@ -1,5 +1,52 @@
+server:
+  port: 9080
+spring:
+  application:
+    name: hold-em
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/cardgame-db
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/realms/cardgame-services
+jwt:
+  auth:
+    converter:
+      resource-id: hold-em-app
+      principal-attribute: preferred_username
+
+app:
+  cors:
+    allowed-origins: http://localhost:3000
+
+management:
+  endpoints:
+    web:
+      exposure.include: beans, env, health, info, metrics, mappings
+  endpoint:
+    health:
+      show-details: always
+
+springdoc:
+  show-actuator: true
+  swagger-ui:
+    groups-order: DESC
+    disable-swagger-default-url: true
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+    org.keycloak: DEBUG
+
 poker-game-settings:
   max-players: 6
   time-to-raise-blinds: 20
   time-per-player-move: 3.5
   total-tournament-time: 180
+avatar:
+  api:
+    url: https://api.dicebear.com/7.x/bottts-neutral/png
+player:
+  initial-bankroll: 10000

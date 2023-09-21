@@ -1,8 +1,9 @@
-package de.thm.holdem.service;
+package de.thm.holdem.utils;
 
 import de.thm.holdem.model.card.Card;
 import de.thm.holdem.model.card.Rank;
 import de.thm.holdem.model.card.Suit;
+import de.thm.holdem.utils.PokerHandEvaluator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

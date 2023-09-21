@@ -1,26 +1,33 @@
 import React from 'react';
-import logo from './logo.svg';
 import './App.css';
+import '@mantine/core/styles.css';
+import {MantineProvider} from "@mantine/core";
+import {ReactKeycloakProvider} from "@react-keycloak/web";
+import keycloak from "./keycloak/keycloak";
+import {ContentLoader} from "./components/loader/ContentLoader";
+import {RequestInterceptor} from "./services/interceptor/RequestInterceptor";
+import AuthenticatedTemplate from "./pages/authenticated-template/AuthenticatedTemplate";
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+
+const App = () => {
+    const keycloakProviderConfig = {
+        initOptions: {
+            onLoad: 'login-required',
+            pkceMethod: 'S256'
+        },
+        authClient: keycloak,
+    };
+    return (
+        <MantineProvider defaultColorScheme="dark">
+        <ReactKeycloakProvider {...keycloakProviderConfig} LoadingComponent={<ContentLoader text="Logging in..."/>}>
+            <RequestInterceptor>
+
+                    <AuthenticatedTemplate/>
+
+            </RequestInterceptor>
+        </ReactKeycloakProvider>
+        </MantineProvider>
+    )
 }
 
-export default App;
+export default App

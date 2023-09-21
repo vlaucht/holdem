@@ -1,5 +1,6 @@
-package de.thm.holdem.model.game;
+package de.thm.holdem.model.game.poker;
 
+import de.thm.holdem.model.game.poker.BlindHelper;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
