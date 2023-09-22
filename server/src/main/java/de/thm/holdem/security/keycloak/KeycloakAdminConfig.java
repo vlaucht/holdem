@@ -5,6 +5,12 @@ import org.keycloak.admin.client.KeycloakBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Configuration for the Keycloak Admin CLI.
+ *
+ * @author Valentin Laucht
+ * @version 1.0
+ */
 @Configuration
 public class KeycloakAdminConfig {
 

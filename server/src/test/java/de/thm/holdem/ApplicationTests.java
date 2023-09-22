@@ -2,34 +2,27 @@ package de.thm.holdem;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.containers.MongoDBContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
-import javax.sql.DataSource;
-import java.sql.SQLException;
-
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
-@ActiveProfiles("test")
+@Testcontainers
 @SpringBootTest
+@ActiveProfiles("test")
 class ApplicationTests {
 
-/*	private final ApplicationContext applicationContext;
+	@Container
+	static MongoDBContainer mongoDBContainer = new MongoDBContainer("mongo:6.0.6");
 
-	ApplicationTests(ApplicationContext applicationContext) {
-		this.applicationContext = applicationContext;
-	}*/
-
+	@DynamicPropertySource
+	static void setProperties(DynamicPropertyRegistry registry) {
+		registry.add("spring.data.mongodb.uri", mongoDBContainer::getReplicaSetUrl);
+	}
 	@Test
 	void contextLoads() {
 	}
-
-/*	@Test
-	void Should_ConnectToDatabase() throws SQLException {
-		DataSource ds = applicationContext.getBean(DataSource.class);
-
-		assertNotNull(ds);
-		assertNotNull(ds.getConnection());
-	}*/
 
 }

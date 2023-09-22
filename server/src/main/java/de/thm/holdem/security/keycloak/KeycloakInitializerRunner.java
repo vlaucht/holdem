@@ -7,14 +7,26 @@ import org.keycloak.admin.client.Keycloak;
 import org.keycloak.representations.idm.ClientRepresentation;
 import org.keycloak.representations.idm.RealmRepresentation;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Class responsible for initializing the Keycloak realm and client.
+ *
+ * <p>
+ *     The realm and client are created only if they do not exist yet.
+ * </p>
+ *
+ * @author Valentin Laucht
+ * @version 1.0
+ */
 @Slf4j
 @RequiredArgsConstructor
 @Component
+@Profile("!test")
 public class KeycloakInitializerRunner implements CommandLineRunner {
 
     private final Keycloak keycloakAdmin;
