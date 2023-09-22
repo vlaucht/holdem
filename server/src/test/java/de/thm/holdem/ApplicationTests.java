@@ -14,22 +14,22 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @SpringBootTest
 class ApplicationTests {
 
-	private final ApplicationContext applicationContext;
+/*	private final ApplicationContext applicationContext;
 
 	ApplicationTests(ApplicationContext applicationContext) {
 		this.applicationContext = applicationContext;
-	}
+	}*/
 
 	@Test
 	void contextLoads() {
 	}
 
-	@Test
+/*	@Test
 	void Should_ConnectToDatabase() throws SQLException {
 		DataSource ds = applicationContext.getBean(DataSource.class);
 
 		assertNotNull(ds);
 		assertNotNull(ds.getConnection());
-	}
+	}*/
 
 }

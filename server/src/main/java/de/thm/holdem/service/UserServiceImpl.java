@@ -8,6 +8,14 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
+/**
+ * Implementation of the {@link UserService}.
+ *
+ * @see UserService
+ *
+ * @author Valentin Laucht
+ * @version 1.0
+ */
 @RequiredArgsConstructor
 @Service
 public class UserServiceImpl implements UserService  {
@@ -16,14 +24,23 @@ public class UserServiceImpl implements UserService  {
     private final AvatarService avatarService;
 
     @Value("${player.initial-bankroll}")
-    private String initialBankroll;
+    protected String initialBankroll;
 
-    @Value("${avatar.api.url}")
-    private String apiUrl;
 
+    /**
+     * Get the {@link UserExtra} for the given username.
+     *
+     * <p>
+     *     If the {@link UserExtra} already exists, it will be returned.
+     *     Otherwise a new {@link UserExtra} will be created.
+     * </p>
+     *
+     * @param username the username of the user
+     * @return the {@link UserExtra} for the given username
+     */
     @Override
-    public UserExtra validateAndGetUserExtra(String username) {
-        Optional<UserExtra> userExtra = getUserExtra(username);
+    public UserExtra getUserExtra(String username) {
+        Optional<UserExtra> userExtra = userExtraRepository.findById(username);
         if (userExtra.isPresent()) {
             return userExtra.get();
         }
@@ -31,16 +48,24 @@ public class UserServiceImpl implements UserService  {
         String avatar = avatarService.getRandomAvatarUrl();
         newUserExtra.setAvatar(avatar);
         newUserExtra.setBankroll(Integer.parseInt(initialBankroll));
-        return saveUserExtra(newUserExtra);
+        return userExtraRepository.save(newUserExtra);
     }
 
-    @Override
-    public Optional<UserExtra> getUserExtra(String username) {
-        return userExtraRepository.findById(username);
-    }
-
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public UserExtra saveUserExtra(UserExtra userExtra) {
+        return userExtraRepository.save(userExtra);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public UserExtra recharge(String username) {
+        UserExtra userExtra = getUserExtra(username);
+        userExtra.setBankroll(Integer.parseInt(initialBankroll));
         return userExtraRepository.save(userExtra);
     }
 }

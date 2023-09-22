@@ -6,8 +6,6 @@ import de.thm.holdem.model.card.Card;
 import de.thm.holdem.model.card.Rank;
 import de.thm.holdem.model.card.Suit;
 import de.thm.holdem.model.game.GameStatus;
-import de.thm.holdem.model.game.poker.PokerGame;
-import de.thm.holdem.model.game.poker.PokerPlayerAction;
 import de.thm.holdem.model.player.PokerPlayer;
 import de.thm.holdem.utils.PokerHandEvaluator;
 import de.thm.holdem.settings.PokerGameSettings;

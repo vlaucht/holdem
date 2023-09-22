@@ -23,9 +23,9 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests(authorizeHttpRequests -> authorizeHttpRequests
                         .requestMatchers(HttpMethod.GET, "/api/poker", "/api/poker/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/lobby", "/api/lobby/**").permitAll()
+                        .requestMatchers("/api/user/me").permitAll()
                         .requestMatchers(HttpMethod.GET, "/actuator/**").permitAll()
                         .requestMatchers("/api/poker", "/api/poker/**").hasAnyRole(CARDGAME_ADMIN, CARDGAME_USER)
-                        .requestMatchers("/api/user/me").hasAnyRole(CARDGAME_ADMIN, CARDGAME_USER)
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs", "/v3/api-docs/**").permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2ResourceServer -> oauth2ResourceServer.jwt(
