@@ -27,11 +27,10 @@ public class WebSecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .authorizeHttpRequests(authorizeHttpRequests -> authorizeHttpRequests
-                        .requestMatchers(HttpMethod.GET, "/api/poker", "/api/poker/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/lobby", "/api/lobby/**").permitAll()
+                        .requestMatchers( "/api/poker", "/api/poker/**").permitAll()
+                        .requestMatchers( "/api/lobby", "/api/lobby/**").permitAll()
                         .requestMatchers("/api/user/me").permitAll()
                         .requestMatchers(HttpMethod.GET, "/actuator/**").permitAll()
-                        .requestMatchers("/api/poker", "/api/poker/**").hasAnyRole(CARDGAME_ADMIN, CARDGAME_USER)
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs", "/v3/api-docs/**").permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2ResourceServer -> oauth2ResourceServer.jwt(

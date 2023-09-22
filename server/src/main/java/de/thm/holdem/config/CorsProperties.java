@@ -1,4 +1,4 @@
-package de.thm.holdem.security;
+package de.thm.holdem.config;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;

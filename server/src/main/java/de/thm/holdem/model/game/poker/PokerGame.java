@@ -15,6 +15,7 @@ import de.thm.holdem.utils.ClassFactory;
 import jdk.jshell.spi.ExecutionControl;
 import lombok.Getter;
 
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,6 +43,9 @@ public class PokerGame extends Game {
     /** Settings of the game */
     private final PokerGameSettings settings;
 
+    /** The maximum amount of players that can join the game */
+    private final int maxPlayerCount;
+
     /** Time of creation */
     private final LocalDate creationDate;
 
@@ -49,7 +53,10 @@ public class PokerGame extends Game {
     private final String creator;
 
     /** amount of money a player has to pay when joining the game to buy chips for the game. */
-    private final int buyIn;
+    private final BigInteger buyIn;
+
+    /** The type of the table */
+    private final TableType tableType;
 
     /** The current blind level */
     private int currentBlindLevel;
@@ -86,6 +93,7 @@ public class PokerGame extends Game {
 
     protected ClassFactory<PokerHandEvaluator> evaluatorFactory;
 
+
     /**
      * Constructor for the poker game
      *
@@ -93,7 +101,9 @@ public class PokerGame extends Game {
      * @param buyIn sets the required buy in for the game
      * @param settings sets the settings for the game
      */
-    public PokerGame(PokerPlayer creator, int buyIn, PokerGameSettings settings) {
+    public PokerGame(PokerPlayer creator, BigInteger buyIn, PokerGameSettings settings, TableType tableType, int maxPlayerCount) {
+        this.tableType = tableType;
+        this.maxPlayerCount = maxPlayerCount;
         creator.joinGame(buyIn);
         this.creator = creator.getAlias();
         this.buyIn = buyIn;
@@ -107,7 +117,7 @@ public class PokerGame extends Game {
         this.evaluatorFactory = new ClassFactory<>(PokerHandEvaluator.class);
     }
 
-    /**
+   /* *//**
      * Method to add players to the playerList
      *
      * <p>
@@ -116,7 +126,7 @@ public class PokerGame extends Game {
      * </p>
      *
      * @param player The player that should be added to the #playerList
-     */
+     *//*
     public void addPlayer(PokerPlayer player) throws Exception {
         if (this.gameStatus.equals(GameStatus.IN_PROGRESS) || this.gameStatus.equals(GameStatus.FINISHED)) {
             throw new IllegalGameActionException("Game is already running");
@@ -130,14 +140,14 @@ public class PokerGame extends Game {
         }
     }
 
-    /**
+    *//**
      * Method to start the game
      *
      * <p>
      *     The game will only be started if at least 3 players have joined the game and the game is not already running
      *     A new deck will be created, the game will be set to running and dealer, small-blind and big-blind positions will be assigned
      * </p>
-     */
+     *//*
     public void startGame() throws Exception {
         if (gameStatus.equals(GameStatus.IN_PROGRESS) || gameStatus.equals(GameStatus.FINISHED)) {
             throw new IllegalGameActionException("Game is already running");
@@ -155,16 +165,16 @@ public class PokerGame extends Game {
                 buyIn, settings.getTotalTournamentTime(), settings.getTimeToRaiseBlinds());
     }
 
-    /**
+    *//**
      * Method to increase the blind level
-     */
+     *//*
     public void raiseBlinds() {
         currentBlindLevel++;
     }
 
-    /**
+    *//**
      * Method to deal cards to the players of the game and set blinds
-     */
+     *//*
     public void deal() throws Exception {
         if (!gameStatus.equals(GameStatus.IN_PROGRESS)) {
             throw new IllegalGameActionException("Game has not started yet.");
@@ -190,12 +200,12 @@ public class PokerGame extends Game {
         setNextActivePlayer(bigBlindPlayer);
     }
 
-    /**
+    *//**
      * Method to set activePlayer to the next player on the table. It will ignore all folded players or
      * players who are all in
      *
      * @param player the player whose turn it currently is
-     */
+     *//*
     void setNextActivePlayer(PokerPlayer player) {
         if(state == State.END) return;
 
@@ -205,10 +215,10 @@ public class PokerGame extends Game {
         }
     }
 
-    /**
+    *//**
      * Method to move the buttons to the next player if the round has ended
      * @param currentSmallBlind the player who is currently the small blind
-     */
+     *//*
     public void setNextBlinds(PokerPlayer currentSmallBlind) {
         smallBlindPlayer = (PokerPlayer) TurnManager.getNext(playerList, currentSmallBlind, true);
         while (smallBlindPlayer.getChips() == 0) {
@@ -221,11 +231,11 @@ public class PokerGame extends Game {
         }
     }
 
-    /**
+    *//**
      * Method to move the dealer to the next player if the round has ended
      *
      * @param currentDealer the player who is currently the dealer
-     */
+     *//*
     public void setNextDealer(PokerPlayer currentDealer) {
         dealer = (PokerPlayer) TurnManager.getNext(playerList, currentDealer, true);
         while (dealer.getChips() == 0) {
@@ -234,11 +244,11 @@ public class PokerGame extends Game {
     }
 
 
-    /**
+    *//**
      * Method to call a bet
      *
      * @param player the player who is calling
-     */
+     *//*
     public void call(PokerPlayer player) throws Exception {
         if(!isPlayerTurn(player)) {
             throw new IllegalGameActionException("It is not the players turn.");
@@ -258,14 +268,14 @@ public class PokerGame extends Game {
         manageRoundEnd();
     }
 
-    /**
+    *//**
      * Method to manage the end of a round
      *
      * <p>
      *     if the round can end, the next round will be started,
      *     else the next player will be set as active player
      * </p>
-     */
+     *//*
     void manageRoundEnd() {
         if(canRoundEnd()) {
             startNextRound();
@@ -274,11 +284,11 @@ public class PokerGame extends Game {
         }
     }
 
-    /**
+    *//**
      * Method to check a bet
      *
      * @param player the player who is checking
-     */
+     *//*
     public void check(PokerPlayer player) throws Exception {
         if(!isPlayerTurn(player)) {
             throw new IllegalGameActionException("It is not the players turn.");
@@ -292,12 +302,12 @@ public class PokerGame extends Game {
         manageRoundEnd();
     }
 
-    /**
+    *//**
      * Method to raise a bet
      *
      * @param player the player who is raising
      * @param amount the amount the player wants to raise
-     */
+     *//*
     public void raise(PokerPlayer player, int amount) throws Exception {
         if(!isPlayerTurn(player)) {
             throw new IllegalGameActionException("It is not the players turn.");
@@ -317,11 +327,11 @@ public class PokerGame extends Game {
         setNextActivePlayer(player);
     }
 
-    /**
+    *//**
      * Method to fold a hand
      *
      * @param player the player that wants to fold
-     */
+     *//*
     public void fold(PokerPlayer player) throws IllegalGameActionException {
         if(!isPlayerTurn(player)) {
             throw new IllegalGameActionException("It is not the players turn.");
@@ -333,16 +343,16 @@ public class PokerGame extends Game {
         manageRoundEnd();
     }
 
-    /**
+    *//**
      * AllIn has been removed to save some LOC
      *
      * @param player the player that wants to go all in
-     */
+     *//*
     public void allIn(Player player) throws ExecutionControl.NotImplementedException {
         throw new ExecutionControl.NotImplementedException("Not yet implemented");
     }
 
-    /**
+    *//**
      * Method to start a new round
      *
      * <p>
@@ -351,7 +361,7 @@ public class PokerGame extends Game {
      *     if current state is TURN: state will be set to RIVER, river card will  be dealt
      *     if current state is RIVER: state will be set to END, hands of all players will be evaluated
      * </p>
-     */
+     *//*
     void startNextRound() {
         switch (state) {
             case PRE_FLOP -> {
@@ -382,13 +392,13 @@ public class PokerGame extends Game {
         }
     }
 
-    /**
+    *//**
      * Method to prepare the game for a new round
      *
      * <p>
      *      NOT a state change, but the whole playing round ended (the pot was won)
      * </p>
-     */
+     *//*
     void prepareNextRound() {
         if (playerList.stream().filter(player -> player.getChips() > 0).count() < 2) {
             gameStatus = GameStatus.FINISHED;
@@ -404,7 +414,7 @@ public class PokerGame extends Game {
         activePlayer = smallBlindPlayer;
     }
 
-    /**
+    *//**
      * Method to evaluate hands of all players. Will return if the state is not END
      *
      * <p>
@@ -412,7 +422,7 @@ public class PokerGame extends Game {
      *     the 3 flop cards, the river card and the turn card.
      *     The Score of each players hand will be assigned to the player
      * </p>
-     */
+     *//*
     public void evaluateHands() {
         if(state != State.END) return;
 
@@ -437,13 +447,13 @@ public class PokerGame extends Game {
                 });
     }
 
-    /**
-     * Method to check if a round can end
+    *//**
+     * Method to check whether a round can end
      *
      * @return (true) if only 1 player has not folded -> round will be set to end;
      * (true) if the round is PRE_FLOP, it is the big blinds turn, and all players have called the current bet or have folded
      * (true) if the round is NOT PRE_FLOP, it is the dealers turn, and all players have called the current bet or have folded
-     */
+     *//*
     boolean canRoundEnd() {
         if (playerList.stream().map(player -> (PokerPlayer) player).filter(player -> !player.isFolded()).count() == 1) {
             playerList.stream()
@@ -476,5 +486,5 @@ public class PokerGame extends Game {
     private boolean isPlayerTurn(PokerPlayer player) {
         return player.equals(activePlayer);
     }
-
+*/
 }

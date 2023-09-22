@@ -1,28 +1,35 @@
 import {Box, Button, Group, Modal, Slider, Space, TextInput, Text} from "@mantine/core";
 import React from "react";
 import {useForm} from "@mantine/form";
+import LobbyService from "../../../services/lobby-service/LobbyService";
+import {PokerGameCreateRequest} from "../../../models/PokerGameCreateRequest";
 
 interface CreateGameModalProps {
     opened: boolean;
     close: () => void;
+    lobbyService: LobbyService;
 }
-export const CreateGameModal: React.FunctionComponent<CreateGameModalProps> = ({opened, close}) => {
+export const CreateGameModal: React.FunctionComponent<CreateGameModalProps> = ({opened, close, lobbyService}) => {
+    const initialFormValues: PokerGameCreateRequest = { name: '', buyIn: 1000, maxPlayerCount: 6, tableType: 'NL' };
+
     const  form = useForm({
-        initialValues: {
-            name: '',
-            buyIn: 1000,
-            maxPlayers: 6,
-        },
+        initialValues: initialFormValues,
 
         validate: {
             name: (value) => ((value.length >= 3) ? null : 'Minimum length is 3 characters')
         },
     });
 
+    const onSubmit = async (values: PokerGameCreateRequest) => {
+        await lobbyService.create(values);
+        // TODO navigate to game
+        close();
+    }
+
     return (
             <Modal opened={opened} onClose={close} title="CREATE GAME">
                 <Box maw={340} mx="auto">
-                    <form onSubmit={form.onSubmit((values) => console.log(values))}>
+                    <form onSubmit={form.onSubmit((values) => onSubmit(values))}>
                         <TextInput
                             withAsterisk
                             label="Game Name"
@@ -45,7 +52,7 @@ export const CreateGameModal: React.FunctionComponent<CreateGameModalProps> = ({
                                 { value: 5, label: '5' },
                                 { value: 6, label: '6' },
                             ]}
-                            {...form.getInputProps('maxPlayers')}
+                            {...form.getInputProps('maxPlayerCount')}
                         />
                         <Space h="xl" />
                         <Group justify="flex-end" mt="md">

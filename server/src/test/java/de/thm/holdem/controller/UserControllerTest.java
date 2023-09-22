@@ -16,16 +16,14 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.math.BigInteger;
 
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(UserController.class)
 @ContextConfiguration(classes = {Application.class, UserService.class})
@@ -60,7 +58,8 @@ class UserControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE));
 
-        result.andExpect(MockMvcResultMatchers.jsonPath("$.bankroll").value(1000));
+        result.andExpect(jsonPath("$.bankroll").value(1000));
+        verify(userExtraService, times(1)).getUserExtra("testUser");
     }
 
     @Test
@@ -76,13 +75,14 @@ class UserControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE));
 
-        result.andExpect(MockMvcResultMatchers.jsonPath("$.bankroll").value(1000));
+        result.andExpect(jsonPath("$.bankroll").value(1000));
+        verify(userExtraService, times(1)).recharge("testUser");
     }
 
     @Test
     void Should_BlockRequest_If_NotAuthorized() throws Exception {
         mockMvc.perform(get("/api/user/me"))
-                .andExpect(MockMvcResultMatchers.status().isUnauthorized());
+                .andExpect(status().isUnauthorized());
     }
 
 

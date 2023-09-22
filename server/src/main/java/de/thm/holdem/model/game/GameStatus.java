@@ -1,5 +1,7 @@
 package de.thm.holdem.model.game;
 
+import com.fasterxml.jackson.annotation.JsonValue;
+
 /**
  * Enum for the status of a game.
  *
@@ -14,13 +16,14 @@ public enum GameStatus {
     ;
 
     /** A string representation of the game status */
-    private final String description;
+    @JsonValue
+    private final String prettyName;
 
-    GameStatus(String description) {
-        this.description = description;
+    GameStatus(String prettyName) {
+        this.prettyName = prettyName;
     }
 
-    public String getDescription() {
-        return this.description;
+    public String getPrettyName() {
+        return this.prettyName;
     }
 }

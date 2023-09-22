@@ -4,9 +4,11 @@ import de.thm.holdem.exception.GameActionException;
 import de.thm.holdem.model.card.Card;
 import de.thm.holdem.model.game.poker.PokerPlayerAction;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,12 +34,13 @@ public class PokerPlayer extends Player {
     @Setter
     protected PokerPlayerAction lastAction;
 
-    public PokerPlayer(String alias) {
-        super(alias);
+    public PokerPlayer(String alias, String avatar, BigInteger bankroll) {
+        super(alias, avatar, bankroll);
         this.isFolded = false;
         this.handScore = 0;
         this.hand = new ArrayList<>(2);
     }
+
 
     /**
      * Method to deal a card to the players hand.

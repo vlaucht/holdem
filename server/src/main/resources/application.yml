@@ -34,13 +34,14 @@ springdoc:
 logging:
   level:
     org.springframework.security: DEBUG
+    org.springframework.web.cors: DEBUG
     org.keycloak: DEBUG
 
 web:
   cors:
     allowed-origins: http://localhost:3000
     allowed-methods: GET, POST, PUT, DELETE, OPTIONS
-    allowed-headers: Content-Type, Authorization
+    allowed-headers: Content-Type, Authorization, Origin, Accept
 
 poker-game-settings:
   max-players: 6
@@ -52,3 +53,5 @@ avatar:
     url: https://api.dicebear.com/7.x/bottts-neutral/png
 player:
   initial-bankroll: 10000
+api:
+  base-url: http://localhost:9080

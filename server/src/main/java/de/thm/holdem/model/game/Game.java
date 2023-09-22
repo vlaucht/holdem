@@ -10,6 +10,8 @@ public abstract class Game {
 
     protected String id;
 
+    protected String name;
+
     protected GameStatus gameStatus;
 
     protected ArrayList<Player> playerList;

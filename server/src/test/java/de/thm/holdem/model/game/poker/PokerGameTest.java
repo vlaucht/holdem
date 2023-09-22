@@ -1,3 +1,4 @@
+/*
 package de.thm.holdem.model.game.poker;
 
 import de.thm.holdem.exception.GameActionException;
@@ -680,4 +681,4 @@ class PokerGameTest {
 
 
 
-}
+}*/

@@ -4,6 +4,7 @@ import de.thm.holdem.exception.GameActionException;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigInteger;
 import java.util.Objects;
 
 /**
@@ -17,19 +18,20 @@ public abstract class Player {
 
     protected final String alias;
 
-    protected int bankroll;
+    protected final String avatar;
 
-    @Setter
-    protected int chips;
+    protected BigInteger bankroll;
 
-    @Setter
-    protected int currentBet;
+    protected BigInteger chips;
 
-    Player(String alias) {
+    protected BigInteger currentBet;
+
+    Player(String alias, String avatar, BigInteger bankroll) {
         this.alias = alias;
-        this.bankroll = 10000;
-        this.chips = 0;
-        this.currentBet = 0;
+        this.avatar = avatar;
+        this.bankroll = bankroll;
+        this.chips = BigInteger.ZERO;
+        this.currentBet = BigInteger.ZERO;
     }
 
 
@@ -38,8 +40,8 @@ public abstract class Player {
      *
      * @param amount the amount of chips to add
      */
-    public void addToBankroll(int amount) {
-        this.bankroll += amount;
+    public void addToBankroll(BigInteger amount) {
+        bankroll = bankroll.add(amount);
     }
 
     /**
@@ -47,8 +49,8 @@ public abstract class Player {
      *
      * @param amount the amount of chips to remove
      */
-    public void removeFromBankroll(int amount) {
-        this.bankroll -= amount;
+    public void removeFromBankroll(BigInteger amount) {
+        bankroll = bankroll.subtract(amount);
     }
 
     /**
@@ -59,8 +61,8 @@ public abstract class Player {
      * </p>
      */
     public void leaveGame() {
-        this.bankroll += this.chips;
-        this.chips = 0;
+        bankroll = bankroll.add(chips);
+        chips = BigInteger.ZERO;
         reset();
     }
 
@@ -70,11 +72,15 @@ public abstract class Player {
      * <p>
      *     Will remove the initial chips from the players bankroll and add them to the players chips.
      * </p>
+     *
+     * @param buyIn the amount of chips to buy in
+     * @return the remaining bankroll after the buy in
      */
-    public void joinGame(int buyIn) {
-        this.chips = buyIn;
-        this.bankroll -= buyIn;
+    public BigInteger joinGame(BigInteger buyIn) {
+        chips = buyIn;
+        removeFromBankroll(buyIn);
         reset();
+        return bankroll;
     }
 
     /**
@@ -85,16 +91,16 @@ public abstract class Player {
      * </p>
      */
     public void reset() {
-        this.currentBet = 0;
+        this.currentBet = BigInteger.ZERO;
     }
 
     /**
      * Method to add a win to the players chips.
      *
-     * @param chips the amount of chips to add
+     * @param amount the amount of chips to add
      */
-    public void win(int chips) {
-        this.chips += chips;
+    public void win(BigInteger amount) {
+        chips = chips.add(amount);
     }
 
     /**
@@ -106,15 +112,15 @@ public abstract class Player {
      *
      * @param amount the amount of chips to bet
      */
-    public void bet(int amount) throws GameActionException {
-        if (amount < 0) {
+    public void bet(BigInteger amount) throws GameActionException {
+        if (amount.compareTo(BigInteger.ZERO) == 0) {
             throw new GameActionException("Bet amount cannot be negative");
         }
-        if (amount > this.chips) {
+        if (amount.compareTo(chips) > 0) {
             throw new GameActionException("Not enough chips to bet");
         }
-        this.chips -= amount;
-        this.currentBet += amount;
+        chips = chips.subtract(amount);
+        currentBet = currentBet.add(amount);
     }
 
     @Override

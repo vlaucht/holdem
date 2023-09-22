@@ -21,6 +21,7 @@ export const UserProvider: React.FC<{children: ReactNode}> = ({  children }) => 
             const response: UserExtra = await userService.getUserExtra();
             updateUser(response);
         } catch (error) {
+            // TODO toast
             console.error('Error fetching user data:', error);
         }
     };

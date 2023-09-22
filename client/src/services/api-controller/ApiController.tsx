@@ -62,6 +62,24 @@ export class ApiController {
     }
 
     /**
+     * Generic POST request. Sends a POST request to the api.
+     *
+     * @param URL the url for the request excluding the base url
+     * @param payload optional request payload
+     * @param params optional request params
+     */
+    async postRequest<T>(URL: string, payload?: {}, params?: {}): Promise<T> {
+        return new Promise<any>((resolve, reject) => {
+            Axios.post(`${this.apiUrl}/${URL}`, payload, {params: params})
+                .then((res) => {
+                    resolve(JSON.parse(JSON.stringify(res.data)) as T)
+                }).catch((err: AxiosError) => {
+                reject(this.formatError(err))
+            });
+        });
+    }
+
+    /**
      * Method to format an API error with meaningful messages.
      *
      * @param error the error to format

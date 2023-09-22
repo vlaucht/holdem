@@ -1,20 +1,34 @@
 import React from "react";
 import {AppShell} from "@mantine/core";
 import {Header} from "./header/Header";
-import {GameList} from "../../components/lobby/game-list/GameList";
+import { Routes as NavRoutes } from './navigation/Routes'
+import {BrowserRouter, Outlet, Route, Routes} from "react-router-dom";
 
 
 export const Shell: React.FunctionComponent = () => {
 
     return (
+        <BrowserRouter>
             <AppShell
                 header={{height: 60}}
                 padding="md"
             >
                 <Header></Header>
                 <AppShell.Main>
-                    <GameList/>
+                    <Routes>
+                        {NavRoutes.map((route) => (
+                            <Route
+                                key={route.path}
+                                path={route.path}
+                                element={
+                                    <route.element />
+                                }
+                            />
+                        ))}
+                    </Routes>
+                    <Outlet />
                 </AppShell.Main>
             </AppShell>
+        </BrowserRouter>
     )
 }
