@@ -8,6 +8,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.math.BigInteger;
 import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -53,7 +54,7 @@ class UserServiceImplTest {
 
         assertEquals(username, result.getUsername());
         assertEquals("mockedAvatarUrl", result.getAvatar());
-        assertEquals(Integer.parseInt(initialBankroll), result.getBankroll());
+        assertEquals(new BigInteger(initialBankroll), result.getBankroll());
         verify(userExtraRepository, times(1)).findById(username);
         verify(avatarService, times(1)).getRandomAvatarUrl();
         verify(userExtraRepository, times(1)).save(result);
@@ -80,7 +81,7 @@ class UserServiceImplTest {
 
         UserExtra result = userExtraService.recharge(username);
 
-        assertEquals(Integer.parseInt(initialBankroll), result.getBankroll());
+        assertEquals(new BigInteger(initialBankroll), result.getBankroll());
         verify(userExtraRepository, times(1)).findById(username);
         verify(userExtraRepository, times(1)).save(mockUserExtra);
     }

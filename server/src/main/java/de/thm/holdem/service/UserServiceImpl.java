@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.math.BigInteger;
 import java.util.Optional;
 
 /**
@@ -47,7 +48,7 @@ public class UserServiceImpl implements UserService  {
         UserExtra newUserExtra = new UserExtra(username);
         String avatar = avatarService.getRandomAvatarUrl();
         newUserExtra.setAvatar(avatar);
-        newUserExtra.setBankroll(Integer.parseInt(initialBankroll));
+        newUserExtra.setBankroll(new BigInteger(initialBankroll));
         return userExtraRepository.save(newUserExtra);
     }
 
@@ -65,7 +66,7 @@ public class UserServiceImpl implements UserService  {
     @Override
     public UserExtra recharge(String username) {
         UserExtra userExtra = getUserExtra(username);
-        userExtra.setBankroll(Integer.parseInt(initialBankroll));
+        userExtra.setBankroll(new BigInteger(initialBankroll));
         return userExtraRepository.save(userExtra);
     }
 }

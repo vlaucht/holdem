@@ -18,6 +18,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
+import java.math.BigInteger;
+
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -50,7 +52,7 @@ class UserControllerTest {
     @WithMockUser(username = "testUser")
     void Should_GetUserExtra() throws Exception {
         UserExtra mockUserExtra = new UserExtra("testUser");
-        mockUserExtra.setBankroll(1000);
+        mockUserExtra.setBankroll(BigInteger.valueOf(1000));
         when(userExtraService.getUserExtra("testUser")).thenReturn(mockUserExtra);
 
         ResultActions result = mockMvc.perform(get("/api/user/me")
@@ -65,7 +67,7 @@ class UserControllerTest {
     @WithMockUser(username = "testUser")
     void Should_RechargeUserBankroll() throws Exception {
         UserExtra mockUserExtra = new UserExtra("testUser");
-        mockUserExtra.setBankroll(1000);
+        mockUserExtra.setBankroll(BigInteger.valueOf(1000));
         when(userExtraService.recharge("testUser")).thenReturn(mockUserExtra);
 
         ResultActions result = mockMvc.perform(post("/api/user/me")

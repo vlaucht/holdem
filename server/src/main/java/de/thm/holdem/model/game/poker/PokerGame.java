@@ -23,8 +23,6 @@ import java.util.List;
 @Getter
 public class PokerGame extends Game {
 
-    private String id;
-
     /**
      * Enum which returns all possible states the game can be in
      *
