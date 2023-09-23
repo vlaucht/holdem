@@ -15,9 +15,12 @@ class WebSocketService {
     }
 
     connect() {
-        const socket = new SockJS('http://localhost:9080/ws?access_token=' + this.token);
+        const socket = new SockJS('http://localhost:9080/ws');
         this.stompClient = Stomp.over(socket);
-        this.stompClient.connect({}, () => {
+        const headers = {
+            'Authorization': `Bearer ${this.token}`
+        };
+        this.stompClient.connect(headers, () => {
             console.log('Connected to WebSocket');
         });
     }
@@ -31,12 +34,18 @@ class WebSocketService {
     }
 
     subscribe(channel: string, callback: (arg0: any) => void) {
+        console.log(this.stompClient);
+        console.log("trying to subscribe to channel: " + channel);
         if (!this.stompClient) {
             // TODO: throw error
             return;
         }
+        console.log("subscribing to channel: " + channel);
         this.stompClient.subscribe(channel, (message) => {
+
                 callback(JSON.parse(message.body));
+        },     {
+            'Authorization': `Bearer ${this.token}`
         });
     }
 

@@ -22,6 +22,7 @@ import java.util.Optional;
 public class UserServiceImpl implements UserService  {
 
     private final UserRepository userExtraRepository;
+
     private final AvatarService avatarService;
 
     @Value("${player.initial-bankroll}")

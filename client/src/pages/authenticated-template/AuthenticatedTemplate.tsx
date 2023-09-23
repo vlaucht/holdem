@@ -3,11 +3,12 @@ import {Shell} from "../shell/Shell";
 import React, {useEffect} from "react";
 import {ErrorPage} from "../../components/error/ErrorPage";
 import {UserProvider} from "../../hooks/user-provider/UserProvider";
+import {useServices} from "../../hooks/service-provider/ServiceProvider";
 import WebSocketService from "../../services/websocket-service/WebsocketService";
 
 const AuthenticatedTemplate = () => {
     const {keycloak} = useKeycloak();
-    const webSocketService = new WebSocketService();
+    const webSocketService: WebSocketService = useServices().webSocketService;
 
     useEffect(() => {
         webSocketService.connect();
@@ -19,15 +20,15 @@ const AuthenticatedTemplate = () => {
     }, []);
 
     return (
-            keycloak.authenticated ?
-                (
+        keycloak.authenticated ?
+            (
                     <UserProvider>
                         <Shell/>
                     </UserProvider>
-                    )
-                :
-                (<ErrorPage text="You are not logged in."/>)
-        )
+            )
+            :
+            (<ErrorPage text="You are not logged in."/>)
+    )
 
 
 }

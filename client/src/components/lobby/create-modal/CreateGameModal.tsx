@@ -1,16 +1,16 @@
 import {Box, Button, Group, Modal, Slider, Space, TextInput, Text} from "@mantine/core";
 import React from "react";
 import {useForm} from "@mantine/form";
-import LobbyService from "../../../services/lobby-service/LobbyService";
 import {PokerGameCreateRequest} from "../../../models/PokerGameCreateRequest";
+import {useServices} from "../../../hooks/service-provider/ServiceProvider";
 
 interface CreateGameModalProps {
     opened: boolean;
     close: () => void;
-    lobbyService: LobbyService;
 }
-export const CreateGameModal: React.FunctionComponent<CreateGameModalProps> = ({opened, close, lobbyService}) => {
-    const initialFormValues: PokerGameCreateRequest = { name: '', buyIn: 1000, maxPlayerCount: 6, tableType: 'NL' };
+export const CreateGameModal: React.FunctionComponent<CreateGameModalProps> = ({opened, close}) => {
+    const lobbyService = useServices().lobbyService;
+    const initialFormValues: PokerGameCreateRequest = { name: '', buyIn: 150, maxPlayerCount: 6, tableType: 'NL' };
 
     const  form = useForm({
         initialValues: initialFormValues,

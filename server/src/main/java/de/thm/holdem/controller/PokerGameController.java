@@ -33,8 +33,7 @@ public class PokerGameController {
     private String baseUrl;
 
     @PostMapping("/join")
-    public ResponseEntity<PokerGame> join(@RequestBody ConnectRequest request) throws Exception {
-        // TODO convert to dto
+    public ResponseEntity<PokerGameStateDto> join(@RequestBody ConnectRequest request) throws Exception {
        // return ResponseEntity.ok(pokerGameService.joinGame(request.gameId(), request.playerName()));
         return null;
     }

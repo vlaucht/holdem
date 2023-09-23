@@ -1,17 +1,17 @@
 import React, {useEffect, useState} from "react";
 import {GameList} from "../../components/lobby/game-list/GameList";
-import WebSocketService from "../../services/websocket-service/WebsocketService";
 import {PokerGameLobbyDto} from "../../models/PokerGameLobbyDto";
-import LobbyService from "../../services/lobby-service/LobbyService";
 import {useDisclosure} from "@mantine/hooks";
-import {Button, Container, Flex, Table} from "@mantine/core";
+import {Button, Container, Flex} from "@mantine/core";
 import {IconPlus} from "@tabler/icons-react";
 import {CreateGameModal} from "../../components/lobby/create-modal/CreateGameModal";
+import {useServices} from "../../hooks/service-provider/ServiceProvider";
 
 
 export const Lobby: React.FunctionComponent = () => {
-    const webSocketService = new WebSocketService();
-    const lobbyService = new LobbyService();
+    const services = useServices();
+    const webSocketService = services.webSocketService;
+    const lobbyService = services.lobbyService;
     const [pokerGames, setPokerGames] = useState<PokerGameLobbyDto[]>([]);
     const [opened, { open, close }] = useDisclosure(false);
 
@@ -26,9 +26,11 @@ export const Lobby: React.FunctionComponent = () => {
     };
 
     useEffect(() => {
+        console.log(webSocketService);
         fetchData();
         // Subscribe to /lobby channel
         webSocketService.subscribe('/topic/lobby', (message) => {
+            console.log('Received message from /topic/lobby:', message);
             setPokerGames(lobbyService.updateGameList(message, pokerGames));
         });
 
@@ -54,7 +56,7 @@ export const Lobby: React.FunctionComponent = () => {
 
                 <GameList games={pokerGames}/>
             </Container>
-            <CreateGameModal opened={opened} close={close} lobbyService={lobbyService}/>
+            <CreateGameModal opened={opened} close={close}/>
         </>
     )
 }

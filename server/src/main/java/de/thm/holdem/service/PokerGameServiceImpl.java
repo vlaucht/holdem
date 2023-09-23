@@ -2,7 +2,6 @@ package de.thm.holdem.service;
 
 import de.thm.holdem.dto.ClientOperation;
 import de.thm.holdem.dto.PokerGameCreateRequest;
-import de.thm.holdem.dto.PokerGameLobbyDto;
 import de.thm.holdem.exception.GameActionException;
 import de.thm.holdem.model.game.poker.PokerGame;
 import de.thm.holdem.model.player.PokerPlayer;
@@ -12,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -36,7 +34,7 @@ public class PokerGameServiceImpl implements PokerGameService {
 
         PokerPlayer pokerPlayer = new PokerPlayer(player, userExtra.getAvatar(), userExtra.getBankroll());
         PokerGame game = new PokerGame(pokerPlayer, BigInteger.valueOf(request.getBuyIn()),
-                settings, request.getTableType(), request.getMaxPlayerCount());
+                settings, request.getTableType(), request.getMaxPlayerCount(), request.getName());
         userExtra.setBankroll(pokerPlayer.joinGame(BigInteger.valueOf(request.getBuyIn())));
         registry.addGame(game);
         userService.saveUserExtra(userExtra);

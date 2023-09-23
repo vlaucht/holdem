@@ -1,22 +1,15 @@
 package de.thm.holdem.model.game.poker;
 
-import de.thm.holdem.exception.GameActionException;
-import de.thm.holdem.exception.IllegalGameActionException;
 import de.thm.holdem.model.card.Card;
 import de.thm.holdem.model.card.Deck;
 import de.thm.holdem.model.game.Game;
-import de.thm.holdem.model.game.GameStatus;
-import de.thm.holdem.utils.TurnManager;
-import de.thm.holdem.model.player.Player;
 import de.thm.holdem.model.player.PokerPlayer;
 import de.thm.holdem.utils.PokerHandEvaluator;
 import de.thm.holdem.settings.PokerGameSettings;
 import de.thm.holdem.utils.ClassFactory;
-import jdk.jshell.spi.ExecutionControl;
 import lombok.Getter;
 
 import java.math.BigInteger;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,12 +38,6 @@ public class PokerGame extends Game {
 
     /** The maximum amount of players that can join the game */
     private final int maxPlayerCount;
-
-    /** Time of creation */
-    private final LocalDate creationDate;
-
-    /** Alias of the player who created the game */
-    private final String creator;
 
     /** amount of money a player has to pay when joining the game to buy chips for the game. */
     private final BigInteger buyIn;
@@ -101,17 +88,15 @@ public class PokerGame extends Game {
      * @param buyIn sets the required buy in for the game
      * @param settings sets the settings for the game
      */
-    public PokerGame(PokerPlayer creator, BigInteger buyIn, PokerGameSettings settings, TableType tableType, int maxPlayerCount) {
+    public PokerGame(PokerPlayer creator, BigInteger buyIn, PokerGameSettings settings, TableType tableType,
+                     int maxPlayerCount, String name) {
+        super(name, creator.getAlias());
         this.tableType = tableType;
         this.maxPlayerCount = maxPlayerCount;
-        creator.joinGame(buyIn);
-        this.creator = creator.getAlias();
         this.buyIn = buyIn;
-        this.creationDate = LocalDate.now();
         this.settings = settings;
-        playerList = new ArrayList<>(6);
+        playerList = new ArrayList<>(maxPlayerCount);
         playerList.add(creator);
-        this.gameStatus = GameStatus.WAITING;
         this.deck = new Deck();
         this.currentBlindLevel = 0;
         this.evaluatorFactory = new ClassFactory<>(PokerHandEvaluator.class);
