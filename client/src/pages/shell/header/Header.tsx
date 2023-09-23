@@ -1,6 +1,6 @@
 import React from "react";
 import {AppShellHeader, Avatar, Button, Flex, Grid, Group, Title} from '@mantine/core'
-import {IconLogout} from "@tabler/icons-react";
+import {IconLogout, IconMoneybag} from "@tabler/icons-react";
 import {useKeycloak} from "@react-keycloak/web";
 import {useUser} from "../../../hooks/user-provider/UserProvider";
 
@@ -22,7 +22,7 @@ export const Header: React.FunctionComponent = () => {
                     <Group>
                         <Avatar radius="xl" src={user?.avatar}/>
                         <Title order={5} >{user?.username}</Title>
-                        <Title order={5}>{user?.bankroll}$</Title>
+                        <Title order={5}><IconMoneybag/>{user?.bankroll}$</Title>
                     </Group>
                 </Grid.Col>
                 <Grid.Col span={2}>

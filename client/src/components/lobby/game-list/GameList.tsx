@@ -1,5 +1,5 @@
 import React from "react";
-import {Table} from "@mantine/core";
+import {Button, Table} from "@mantine/core";
 import {PokerGameLobbyDto} from "../../../models/PokerGameLobbyDto";
 
 interface GameListProps {
@@ -17,7 +17,7 @@ export const GameList: React.FunctionComponent<GameListProps> = ({games}) => {
                     <Table.Th>BUI-IN</Table.Th>
                     <Table.Th>STATUS</Table.Th>
                     <Table.Th>TABLE</Table.Th>
-                    <Table.Th>ACTIONS</Table.Th>
+                    <Table.Th></Table.Th>
                     </Table.Tr>
                 </Table.Thead>
                 <Table.Tbody>
@@ -28,7 +28,7 @@ export const GameList: React.FunctionComponent<GameListProps> = ({games}) => {
                             <Table.Td>{game.buyIn}</Table.Td>
                             <Table.Td>{game.gameStatus}</Table.Td>
                             <Table.Td>{game.tableType}</Table.Td>
-                            <Table.Td>TODO</Table.Td>
+                            <Table.Td><Button disabled={game.gameStatus !== 'Waiting for Players'} color="green">JOIN</Button></Table.Td>
                         </Table.Tr>
                     ))}
                 </Table.Tbody>
