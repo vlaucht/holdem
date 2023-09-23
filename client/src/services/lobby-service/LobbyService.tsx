@@ -25,13 +25,15 @@ class LobbyService {
 
     updateGameList(game: PokerGameLobbyDto, gameList: PokerGameLobbyDto[]): PokerGameLobbyDto[] {
         if (game.operation === 'CREATE') {
+            console.log('Adding game to list:', game);
+            console.log([...gameList, game]);
             return [...gameList, game];
         } else if (game.operation === 'UPDATE') {
             return gameList.map((oldGame) => {
                 return oldGame.gameId === game.gameId ? game : oldGame;
             });
         } else if (game.operation === 'DELETE') {
-            return gameList.filter((game) => game.gameId !== game.gameId);
+            return gameList.filter((oldGame) => oldGame.gameId !== game.gameId);
         }
         return gameList;
     }

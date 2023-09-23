@@ -26,12 +26,14 @@ export const Lobby: React.FunctionComponent = () => {
     };
 
     useEffect(() => {
-        console.log(webSocketService);
+        console.log("connect to lobby");
         fetchData();
         // Subscribe to /lobby channel
         webSocketService.subscribe('/topic/lobby', (message) => {
             console.log('Received message from /topic/lobby:', message);
-            setPokerGames(lobbyService.updateGameList(message, pokerGames));
+            setPokerGames((prevGameList) => {
+                return lobbyService.updateGameList(message, prevGameList);
+            });
         });
 
         // Cleanup WebSocket subscription on component unmount

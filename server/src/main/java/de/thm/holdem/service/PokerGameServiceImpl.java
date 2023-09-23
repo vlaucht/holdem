@@ -38,6 +38,7 @@ public class PokerGameServiceImpl implements PokerGameService {
         userExtra.setBankroll(pokerPlayer.joinGame(BigInteger.valueOf(request.getBuyIn())));
         registry.addGame(game);
         userService.saveUserExtra(userExtra);
+        System.out.println("Game created: " + game);
         // TODO notify lobby and notify creator because of bankroll change
         gameLobbyService.broadcast(game, ClientOperation.CREATE);
         return game;

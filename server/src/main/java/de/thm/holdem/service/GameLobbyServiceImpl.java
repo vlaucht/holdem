@@ -25,6 +25,7 @@ public class GameLobbyServiceImpl implements GameLobbyService {
     }
 
     public void broadcast(PokerGame game, ClientOperation operation) {
+        System.out.println("Broadcasting game lobby update: " + game);
         websocketService.broadcast("/topic/lobby", PokerGameLobbyDto.from(game, operation));
     }
 }
