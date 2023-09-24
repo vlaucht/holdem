@@ -42,7 +42,6 @@ public class UserController {
         String username = jwt.getClaim("preferred_username");
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        System.out.println(username);
         UserExtra userExtra = userExtraService.getUserExtra(id, username);
         return ResponseEntity.ok().headers(headers).body(userExtra);
     }

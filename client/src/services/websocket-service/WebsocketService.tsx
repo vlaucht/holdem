@@ -9,6 +9,7 @@ class WebSocketService {
     private subscriptions: { [channel: string]: Stomp.Subscription } = {};
     keyCloak = useKeycloak()
     token: string;
+    private isConnected: boolean = false;
 
     private eventHandlers: { [event: string]: (() => void)[] } = {
         connected: [],
@@ -19,8 +20,16 @@ class WebSocketService {
         this.token = this.keyCloak.keycloak.token || '';
     }
 
+    getSubscriptions() {
+        return this.subscriptions;
+    }
+
+    isWebSocketOpen(): boolean {
+        return this.isConnected;
+    }
+
     connect() {
-        const socket = new SockJS('http://localhost:9080/ws'); //?access_token=' + this.token
+        const socket = new SockJS('http://localhost:9080/ws?access_token=' + this.token);
         this.stompClient = Stomp.over(socket);
         const headers = {
             'Authorization': 'Bearer ' + this.token,
@@ -28,6 +37,7 @@ class WebSocketService {
         this.stompClient.connect(headers, () => {
             this.emit('connected');
             console.log('Connected to WebSocket');
+            this.isConnected = true;
         });
     }
 
@@ -37,21 +47,21 @@ class WebSocketService {
             this.stompClient.disconnect( () => {
                 this.emit('disconnected');
                 console.log('Disconnected from WebSocket');
+                this.isConnected = false;
             });
         }
     }
 
     subscribe(channel: string, callback: (arg0: any) => void) {
-        console.log(this.stompClient);
         console.log("trying to subscribe to channel: " + channel);
         if (!this.stompClient) {
             // TODO: throw error
             return;
         }
         console.log("subscribing to channel: " + channel);
-        this.stompClient.subscribe(channel, (message) => {
+        this.subscriptions[channel] = this.stompClient.subscribe(channel, (message) => {
 
-                callback(JSON.parse(message.body));
+            callback(JSON.parse(message.body));
         });
         console.log(this.subscriptions)
     }

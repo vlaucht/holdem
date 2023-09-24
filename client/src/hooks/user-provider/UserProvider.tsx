@@ -1,6 +1,7 @@
 import React, {createContext, ReactNode, useContext, useEffect, useState} from 'react';
 import {UserService} from "../../services/user-service/UserService";
 import {UserExtra} from "../../models/UserExtra";
+import {useServices} from "../service-provider/ServiceProvider";
 
 interface UserContextType {
     user: UserExtra | null;
@@ -11,11 +12,14 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const UserProvider: React.FC<{children: ReactNode}> = ({  children }) => {
     const [user, setUser] = useState<UserExtra | null>(null);
-    const userService: UserService = new UserService();
+    const services = useServices();
+    const userService: UserService = services.userService;
+    const webSocketService = services.webSocketService;
 
     const updateUser = (userData: UserExtra) => {
         setUser(userData);
     };
+
     const fetchData = async () => {
         try {
             const response: UserExtra = await userService.getUserExtra();
@@ -29,6 +33,18 @@ export const UserProvider: React.FC<{children: ReactNode}> = ({  children }) => 
     useEffect(() => {
         fetchData();
     }, []);
+
+    useEffect(() => {
+        webSocketService.subscribe('/user/queue/bankroll', (message) => {
+            const userCopy: UserExtra = {...user!};
+            userCopy.bankroll = message;
+            updateUser(userCopy);
+        });
+
+        return () => {
+            webSocketService.unsubscribe('/queue/bankroll');
+        };
+    }, [webSocketService]);
 
     return (
         <UserContext.Provider value={{ user, updateUser }}>

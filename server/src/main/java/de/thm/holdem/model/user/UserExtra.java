@@ -7,14 +7,27 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.math.BigInteger;
 import java.util.Objects;
 
+/**
+ * Class to store additional information about a user.
+ *
+ * @author Valentin Laucht
+ * @version 1.0
+ */
 @Data
 @Document(collection = "userextra")
 public class UserExtra {
 
+    /** The id of the user from the JWT "sub" claim. */
     @Id
     private String id;
+
+    /** The username of the user. */
     private String username;
+
+    /** The avatar of the user. */
     private String avatar;
+
+    /** The bankroll of the user. */
     private BigInteger bankroll;
 
 

@@ -7,8 +7,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -23,11 +21,6 @@ import static de.thm.holdem.config.SwaggerConfig.BEARER_KEY_SECURITY_SCHEME;
 public class GameLobbyController {
 
     private final GameLobbyService gameLobbyService;
-
-    @SendTo("/topic/lobby")
-    public List<PokerGameLobbyDto> broadcast(@Payload List<PokerGameLobbyDto> games) {
-        return games;
-    }
 
     /**
      * Returns all poker games.

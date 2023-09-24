@@ -16,4 +16,14 @@ public interface WebsocketService {
      * @param <T> The type of the payload.
      */
     <T> void broadcast(String room, T payload);
+
+    /**
+     * Sends a payload to a specific user.
+     *
+     * @param userId The id of the user to send to.
+     * @param channel The channel to send to.
+     * @param payload The payload to send.
+     * @param <T> The type of the payload.
+     */
+    <T> void sendPrivate(String userId, String channel, T payload);
 }

@@ -10,14 +10,12 @@ import {useServices} from "../../hooks/service-provider/ServiceProvider";
 
 export const Lobby: React.FunctionComponent = () => {
     const services = useServices();
-    const webSocketService = services.webSocketService;
-    const lobbyService = services.lobbyService;
     const [pokerGames, setPokerGames] = useState<PokerGameLobbyDto[]>([]);
     const [opened, { open, close }] = useDisclosure(false);
 
     const fetchData = async () => {
         try {
-            const response: PokerGameLobbyDto[] = await lobbyService.getAll();
+            const response: PokerGameLobbyDto[] = await services.lobbyService.getAll();
             setPokerGames(response);
         } catch (error) {
             // TODO toast
@@ -28,17 +26,21 @@ export const Lobby: React.FunctionComponent = () => {
     useEffect(() => {
         console.log("connect to lobby");
         fetchData();
-        // Subscribe to /lobby channel
-        webSocketService.subscribe('/topic/lobby', (message) => {
-            console.log('Received message from /topic/lobby:', message);
-            setPokerGames((prevGameList) => {
-                return lobbyService.updateGameList(message, prevGameList);
+
+        if (services.webSocketService.isWebSocketOpen()) {
+            console.log("websocket is open");
+            // Subscribe to /lobby channel
+            services.webSocketService.subscribe('/topic/lobby', (message) => {
+                console.log('Received message from /topic/lobby:', message);
+                setPokerGames((prevGameList) => {
+                    return services.lobbyService.updateGameList(message, prevGameList);
+                });
             });
-        });
+        }
 
         // Cleanup WebSocket subscription on component unmount
         return () => {
-            webSocketService.unsubscribe('/topic/lobby');
+            services.webSocketService.unsubscribe('/topic/lobby');
         };
     }, []);
     return (

@@ -31,7 +31,7 @@ public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationTo
     private static final JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
 
     @Value("${keycloak.auth.resource-id}")
-    private final String resourceId;
+    private String resourceId;
 
     /**
      * Converts a JWT to a JwtAuthenticationToken with the user id as principal.

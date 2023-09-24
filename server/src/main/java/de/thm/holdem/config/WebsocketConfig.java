@@ -1,6 +1,7 @@
 package de.thm.holdem.config;
 
 import de.thm.holdem.security.JwsAuthenticationToken;
+import de.thm.holdem.service.ConnectionRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Configuration;
@@ -24,19 +25,24 @@ public class WebsocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private final CorsProperties corsProperties;
 
+    private final ConnectionRegistry registry;
+
+
+
     @Qualifier("websocket")
     private final AuthenticationManager authenticationManager;
 
-    WebsocketConfig(CorsProperties corsProperties, AuthenticationManager authenticationManager) {
+    WebsocketConfig(CorsProperties corsProperties, AuthenticationManager authenticationManager,
+                    ConnectionRegistry registry) {
         this.corsProperties = corsProperties;
         this.authenticationManager = authenticationManager;
+        this.registry = registry;
     }
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
         config.setApplicationDestinationPrefixes("/app");
-        config.enableSimpleBroker("/topic");
-        config.enableSimpleBroker("/queue");
+        config.enableSimpleBroker("/topic/", "/queue/");
     }
 
     @Override
@@ -47,6 +53,13 @@ public class WebsocketConfig implements WebSocketMessageBrokerConfigurer {
     }
 
 
+    /**
+     * Intercepts an incoming connect request and authenticates the user.
+     *
+     * <p>adds the user to the connection registry
+     *
+     * @param registration the channel registration
+     */
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
         registration.interceptors(new ChannelInterceptor() {
@@ -60,6 +73,11 @@ public class WebsocketConfig implements WebSocketMessageBrokerConfigurer {
                         JwsAuthenticationToken token = (JwsAuthenticationToken) authenticationManager
                                 .authenticate(new JwsAuthenticationToken(bearerToken));
                        accessor.setUser(token);
+
+                       // add user to connection registry
+                        String userId = token.getName();
+                        String sessionId = accessor.getSessionId();
+                        registry.connect(userId, sessionId);
                     });
                 }
                 return message;
