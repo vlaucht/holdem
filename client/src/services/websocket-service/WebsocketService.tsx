@@ -7,8 +7,8 @@ class WebSocketService {
     private stompClient: Stomp.Client | null = null;
 
     private subscriptions: { [channel: string]: Stomp.Subscription } = {};
-    keyCloak = useKeycloak()
-    token: string;
+    private keyCloak = useKeycloak()
+    private readonly token: string;
     private isConnected: boolean = false;
 
     private eventHandlers: { [event: string]: (() => void)[] } = {
@@ -53,17 +53,13 @@ class WebSocketService {
     }
 
     subscribe(channel: string, callback: (arg0: any) => void) {
-        console.log("trying to subscribe to channel: " + channel);
         if (!this.stompClient) {
             // TODO: throw error
             return;
         }
-        console.log("subscribing to channel: " + channel);
         this.subscriptions[channel] = this.stompClient.subscribe(channel, (message) => {
-
             callback(JSON.parse(message.body));
         });
-        console.log(this.subscriptions)
     }
 
     unsubscribe(channel: string) {

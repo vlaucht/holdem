@@ -60,7 +60,7 @@ export const Lobby: React.FunctionComponent = () => {
 
                 <GameList games={pokerGames}/>
             </Container>
-            <CreateGameModal opened={opened} close={close}/>
+            {opened && <CreateGameModal opened={opened} close={close} />}
         </>
     )
 }

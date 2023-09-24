@@ -6,7 +6,7 @@ import {useUser} from "../../../hooks/user-provider/UserProvider";
 
 export const Header: React.FunctionComponent = () => {
     const {keycloak} = useKeycloak();
-    const {user, updateUser} = useUser();
+    const {user} = useUser();
     const onLogout = () => { keycloak.logout()   }
     return (
         <AppShellHeader
@@ -20,9 +20,9 @@ export const Header: React.FunctionComponent = () => {
                 <Grid.Col span={5}/>
                 <Grid.Col span={2}>
                     <Group>
-                        <Avatar radius="xl" src={user?.avatar}/>
-                        <Title order={5} >{user?.username}</Title>
-                        <Title order={5}><IconMoneybag/>{user?.bankroll}$</Title>
+                        <Avatar radius="xl" src={user.avatar}/>
+                        <Title order={5} >{user.username}</Title>
+                        <Title order={5}><IconMoneybag/>{user.bankroll}$</Title>
                     </Group>
                 </Grid.Col>
                 <Grid.Col span={2}>

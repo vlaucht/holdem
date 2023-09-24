@@ -4,14 +4,14 @@ import {UserExtra} from "../../models/UserExtra";
 import {useServices} from "../service-provider/ServiceProvider";
 
 interface UserContextType {
-    user: UserExtra | null;
+    user: UserExtra;
     updateUser: (userData: UserExtra) => void;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const UserProvider: React.FC<{children: ReactNode}> = ({  children }) => {
-    const [user, setUser] = useState<UserExtra | null>(null);
+    const [user, setUser] = useState<UserExtra>({bankroll:0, username: '', avatar: ''});
     const services = useServices();
     const userService: UserService = services.userService;
     const webSocketService = services.webSocketService;
@@ -30,15 +30,21 @@ export const UserProvider: React.FC<{children: ReactNode}> = ({  children }) => 
         }
     };
 
+    const updateUserBankroll = (bankroll: number) => {
+        setUser((prevUser) => {
+            const userCopy: UserExtra = { ...prevUser };
+            userCopy.bankroll = bankroll;
+            return userCopy;
+        });
+    }
+
     useEffect(() => {
         fetchData();
     }, []);
 
     useEffect(() => {
         webSocketService.subscribe('/user/queue/bankroll', (message) => {
-            const userCopy: UserExtra = {...user!};
-            userCopy.bankroll = message;
-            updateUser(userCopy);
+            updateUserBankroll(message);
         });
 
         return () => {

@@ -1,8 +1,10 @@
-import {Box, Button, Group, Modal, Slider, Space, TextInput, Text} from "@mantine/core";
+import {Box, Button, Group, Modal, Slider, Space, TextInput, Text, Select} from "@mantine/core";
 import React from "react";
 import {useForm} from "@mantine/form";
 import {PokerGameCreateRequest} from "../../../models/PokerGameCreateRequest";
 import {useServices} from "../../../hooks/service-provider/ServiceProvider";
+import {useUser} from "../../../hooks/user-provider/UserProvider";
+import {UserExtra} from "../../../models/UserExtra";
 
 interface CreateGameModalProps {
     opened: boolean;
@@ -11,6 +13,7 @@ interface CreateGameModalProps {
 export const CreateGameModal: React.FunctionComponent<CreateGameModalProps> = ({opened, close}) => {
     const lobbyService = useServices().lobbyService;
     const initialFormValues: PokerGameCreateRequest = { name: '', buyIn: 150, maxPlayerCount: 6, tableType: 'NL' };
+    const userExtra = useUser().user;
 
     const  form = useForm({
         initialValues: initialFormValues,
@@ -19,6 +22,9 @@ export const CreateGameModal: React.FunctionComponent<CreateGameModalProps> = ({
             name: (value) => ((value.length >= 3) ? null : 'Minimum length is 3 characters')
         },
     });
+
+    // max buy in is 1 million or user's bankroll, whichever is smaller
+    const maxBuyIn = Math.min(1000000, userExtra!.bankroll);
 
     const onSubmit = async (values: PokerGameCreateRequest) => {
         await lobbyService.create(values);
@@ -53,6 +59,29 @@ export const CreateGameModal: React.FunctionComponent<CreateGameModalProps> = ({
                                 { value: 6, label: '6' },
                             ]}
                             {...form.getInputProps('maxPlayerCount')}
+                        />
+                        <Space h="xl" />
+                        <Text size="sm">Buy-In</Text>
+                        <Slider
+                            label={(value) => `${value} $`}
+                            min={100}
+                            max={maxBuyIn}
+                            step={100}
+                            color="cyan"
+                            size="lg"
+                            {...form.getInputProps("buyIn")}
+                        />
+                        <Space h="xl" />
+                        <Select
+                            label="Table Type"
+                            checkIconPosition="right"
+                            data={[
+                                { value: "NL", label: "No-Limit" },
+                                { value: "FL", label: "Fixed-Limit" },
+                            ]}
+                            defaultValue="React"
+                            allowDeselect={false}
+                            {...form.getInputProps("tableType")}
                         />
                         <Space h="xl" />
                         <Group justify="flex-end" mt="md">
