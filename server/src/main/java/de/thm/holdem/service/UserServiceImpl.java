@@ -1,5 +1,6 @@
 package de.thm.holdem.service;
 
+import de.thm.holdem.exception.UserNotFoundException;
 import de.thm.holdem.model.user.UserExtra;
 import de.thm.holdem.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -41,16 +42,22 @@ public class UserServiceImpl implements UserService  {
      * @return the {@link UserExtra} for the given username
      */
     @Override
-    public UserExtra getUserExtra(String username) {
-        Optional<UserExtra> userExtra = userExtraRepository.findById(username);
+    public UserExtra getUserExtra(String id, String username) {
+        Optional<UserExtra> userExtra = userExtraRepository.findById(id);
         if (userExtra.isPresent()) {
             return userExtra.get();
         }
-        UserExtra newUserExtra = new UserExtra(username);
+        UserExtra newUserExtra = new UserExtra(id, username);
         String avatar = avatarService.getRandomAvatarUrl();
         newUserExtra.setAvatar(avatar);
         newUserExtra.setBankroll(new BigInteger(initialBankroll));
         return userExtraRepository.save(newUserExtra);
+    }
+
+    @Override
+    public UserExtra getUserExtra(String id) {
+        Optional<UserExtra> userExtra = userExtraRepository.findById(id);
+        return userExtra.orElseThrow(() -> new UserNotFoundException("User with id " + id + " not found"));
     }
 
     /**
@@ -65,8 +72,8 @@ public class UserServiceImpl implements UserService  {
      * {@inheritDoc}
      */
     @Override
-    public UserExtra recharge(String username) {
-        UserExtra userExtra = getUserExtra(username);
+    public UserExtra recharge(String id) {
+        UserExtra userExtra = getUserExtra(id);
         userExtra.setBankroll(new BigInteger(initialBankroll));
         return userExtraRepository.save(userExtra);
     }

@@ -20,9 +20,12 @@ class WebSocketService {
     }
 
     connect() {
-        const socket = new SockJS('http://localhost:9080/ws?access_token=' + this.token);
+        const socket = new SockJS('http://localhost:9080/ws'); //?access_token=' + this.token
         this.stompClient = Stomp.over(socket);
-        this.stompClient.connect({}, () => {
+        const headers = {
+            'Authorization': 'Bearer ' + this.token,
+        }
+        this.stompClient.connect(headers, () => {
             this.emit('connected');
             console.log('Connected to WebSocket');
         });

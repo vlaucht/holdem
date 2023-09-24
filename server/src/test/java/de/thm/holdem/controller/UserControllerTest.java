@@ -12,7 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -21,6 +21,7 @@ import java.math.BigInteger;
 
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -41,42 +42,52 @@ class UserControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
+    private final String id = "test::id";
+    private final String username = "test::username";
+    private UserExtra userExtra;
+
+    private Jwt jwt;
+
+
     @BeforeEach
     void setup() {
+        userExtra = new UserExtra(id, username);
+        userExtra.setBankroll(BigInteger.valueOf(1000));
         MockitoAnnotations.openMocks(this);
+        jwt = Jwt.withTokenValue("test::token")
+                .claim("sub", id)
+                .claim("preferred_username", username)
+                .header("alg", "RS256")
+                .build();
     }
 
     @Test
-    @WithMockUser(username = "testUser")
     void Should_GetUserExtra() throws Exception {
-        UserExtra mockUserExtra = new UserExtra("testUser");
-        mockUserExtra.setBankroll(BigInteger.valueOf(1000));
-        when(userExtraService.getUserExtra("testUser")).thenReturn(mockUserExtra);
+        when(userExtraService.getUserExtra(id, username)).thenReturn(userExtra);
 
         ResultActions result = mockMvc.perform(get("/api/user/me")
-                        .contentType(MediaType.APPLICATION_JSON_VALUE))
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .with(jwt().jwt(jwt)))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE));
 
         result.andExpect(jsonPath("$.bankroll").value(1000));
-        verify(userExtraService, times(1)).getUserExtra("testUser");
+        verify(userExtraService, times(1)).getUserExtra(id, username);
     }
 
     @Test
-    @WithMockUser(username = "testUser")
     void Should_RechargeUserBankroll() throws Exception {
-        UserExtra mockUserExtra = new UserExtra("testUser");
-        mockUserExtra.setBankroll(BigInteger.valueOf(1000));
-        when(userExtraService.recharge("testUser")).thenReturn(mockUserExtra);
+        when(userExtraService.recharge(id)).thenReturn(userExtra);
 
         ResultActions result = mockMvc.perform(post("/api/user/me")
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
-                        .with(csrf()))
+                        .with(csrf())
+                        .with(jwt().jwt(jwt)))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE));
 
         result.andExpect(jsonPath("$.bankroll").value(1000));
-        verify(userExtraService, times(1)).recharge("testUser");
+        verify(userExtraService, times(1)).recharge(id);
     }
 
     @Test

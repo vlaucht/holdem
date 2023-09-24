@@ -1,5 +1,6 @@
 package de.thm.holdem.security.keycloak;
 
+import de.thm.holdem.security.KeycloakPublicKeyCache;
 import de.thm.holdem.security.WebSecurityConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +19,7 @@ import java.util.Optional;
  *
  * <p>
  *     The realm and client are created only if they do not exist yet.
+ *     After the initialization of the keycloak realm, the public key cache is initialized.
  * </p>
  *
  * @author Valentin Laucht
@@ -30,6 +32,7 @@ import java.util.Optional;
 public class KeycloakInitializerRunner implements CommandLineRunner {
 
     private final Keycloak keycloakAdmin;
+    private final KeycloakPublicKeyCache keycloakPublicKeyCache;
 
     @Override
     public void run(String... args) {
@@ -42,6 +45,7 @@ public class KeycloakInitializerRunner implements CommandLineRunner {
                 .findAny();
         if (representationOptional.isPresent()) {
             log.info("Realm '{}' already created. Aborting...", CARD_GAME_SERVICES_REALM_NAME);
+            keycloakPublicKeyCache.init();
             return;
         }
 
@@ -65,6 +69,8 @@ public class KeycloakInitializerRunner implements CommandLineRunner {
         keycloakAdmin.realms().create(realmRepresentation);
 
         log.info("'{}' initialization completed successfully!", CARD_GAME_SERVICES_REALM_NAME);
+
+        keycloakPublicKeyCache.init();
     }
 
 

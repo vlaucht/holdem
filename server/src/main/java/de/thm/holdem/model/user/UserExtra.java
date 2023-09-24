@@ -5,7 +5,6 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.math.BigInteger;
-import java.util.List;
 import java.util.Objects;
 
 @Data
@@ -13,28 +12,26 @@ import java.util.Objects;
 public class UserExtra {
 
     @Id
+    private String id;
     private String username;
     private String avatar;
     private BigInteger bankroll;
-    private Boolean isOnline;
-    private Boolean isPlaying;
-    private List<String> sessions;
-    private List<String> channels;
 
-    public UserExtra(String username) {
+
+    public UserExtra(String id, String username) {
+        this.id = id;
         this.username = username;
-        this.isPlaying = false;
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof UserExtra userExtra)) return false;
-        return this.username.equals(userExtra.getUsername());
+        return this.id.equals(userExtra.getId());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.username);
+        return Objects.hash(this.id);
     }
 }

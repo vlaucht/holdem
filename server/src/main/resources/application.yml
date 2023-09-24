@@ -17,6 +17,12 @@ jwt:
       resource-id: hold-em-app
       principal-attribute: preferred_username
 
+keycloak:
+  auth:
+    server-url: http://localhost:8080
+    realm: cardgame-services
+    resource-id: hold-em-app
+
 management:
   endpoints:
     web:

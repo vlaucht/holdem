@@ -48,6 +48,17 @@ public class ApiExceptionHandler {
         return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(NotAuthorizedException.class)
+    public ResponseEntity<Object> handleNotAuthorizedException(NotAuthorizedException e) {
+
+        ApiError apiError = new ApiError(
+                Timestamp.from(Instant.now()),
+                HttpStatus.UNAUTHORIZED.value(),
+                HttpStatus.UNAUTHORIZED.getReasonPhrase(),
+                e.getMessage());
+        return new ResponseEntity<>(apiError, HttpStatus.UNAUTHORIZED);
+    }
+
     @ExceptionHandler(ApiRequestException.class)
     public ResponseEntity<Object> handleApiRequestException(ApiRequestException e) {
 

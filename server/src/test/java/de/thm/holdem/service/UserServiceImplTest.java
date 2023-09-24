@@ -26,64 +26,67 @@ class UserServiceImplTest {
 
     private final String initialBankroll = "10000";
 
+    private final String id = "test::id";
+    private final String username = "test::username";
+
+    private UserExtra userExtra;
     @BeforeEach
     void setUp() {
+        userExtra = new UserExtra(id, username);
         MockitoAnnotations.openMocks(this);
     }
 
+
+
     @Test
     void Should_ReturnUserExtra_If_ItExists() {
-        String username = "testUser";
-        UserExtra mockUserExtra = new UserExtra(username);
-        when(userExtraRepository.findById(username)).thenReturn(Optional.of(mockUserExtra));
+        when(userExtraRepository.findById(id)).thenReturn(Optional.of(userExtra));
 
-        UserExtra result = userExtraService.getUserExtra(username);
+        UserExtra result = userExtraService.getUserExtra(id);
 
-        assertEquals(mockUserExtra, result);
-        verify(userExtraRepository, times(1)).findById(username);
+        assertEquals(userExtra, result);
+        verify(userExtraRepository, times(1)).findById(id);
     }
 
     @Test
     void Should_CreateUserExtra_If_ItDoesntExist() {
         userExtraService.initialBankroll = initialBankroll;
-        String username = "testUser";
-        when(userExtraRepository.findById(username)).thenReturn(Optional.empty());
+        when(userExtraRepository.findById(id)).thenReturn(Optional.empty());
         when(avatarService.getRandomAvatarUrl()).thenReturn("mockedAvatarUrl");
         when(userExtraRepository.save(any(UserExtra.class))).thenAnswer(i -> i.getArguments()[0]);
-        UserExtra result = userExtraService.getUserExtra(username);
+        UserExtra result = userExtraService.getUserExtra(id, username);
 
+        assertEquals(id, result.getId());
         assertEquals(username, result.getUsername());
         assertEquals("mockedAvatarUrl", result.getAvatar());
         assertEquals(new BigInteger(initialBankroll), result.getBankroll());
-        verify(userExtraRepository, times(1)).findById(username);
+        verify(userExtraRepository, times(1)).findById(id);
         verify(avatarService, times(1)).getRandomAvatarUrl();
         verify(userExtraRepository, times(1)).save(result);
     }
 
     @Test
     void Should_SaveUserExtraToDatabase() {
-        UserExtra mockUserExtra = new UserExtra("testUser");
-        when(userExtraRepository.save(mockUserExtra)).thenReturn(mockUserExtra);
+        when(userExtraRepository.save(userExtra)).thenReturn(userExtra);
 
-        UserExtra result = userExtraService.saveUserExtra(mockUserExtra);
+        UserExtra result = userExtraService.saveUserExtra(userExtra);
 
-        assertEquals(mockUserExtra, result);
-        verify(userExtraRepository, times(1)).save(mockUserExtra);
+        assertEquals(userExtra, result);
+        verify(userExtraRepository, times(1)).save(userExtra);
     }
 
     @Test
     void Should_RestoreBankrollToInitialValue() {
         userExtraService.initialBankroll = initialBankroll;
-        String username = "testUser";
-        UserExtra mockUserExtra = new UserExtra(username);
-        when(userExtraRepository.findById(username)).thenReturn(Optional.of(mockUserExtra));
-        when(userExtraRepository.save(mockUserExtra)).thenReturn(mockUserExtra);
 
-        UserExtra result = userExtraService.recharge(username);
+        when(userExtraRepository.findById(id)).thenReturn(Optional.of(userExtra));
+        when(userExtraRepository.save(userExtra)).thenReturn(userExtra);
+
+        UserExtra result = userExtraService.recharge(id);
 
         assertEquals(new BigInteger(initialBankroll), result.getBankroll());
-        verify(userExtraRepository, times(1)).findById(username);
-        verify(userExtraRepository, times(1)).save(mockUserExtra);
+        verify(userExtraRepository, times(1)).findById(id);
+        verify(userExtraRepository, times(1)).save(userExtra);
     }
 
 }
