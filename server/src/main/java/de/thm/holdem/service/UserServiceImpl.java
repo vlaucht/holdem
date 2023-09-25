@@ -45,6 +45,7 @@ public class UserServiceImpl implements UserService  {
     public UserExtra getUserExtra(String id, String username) {
         Optional<UserExtra> userExtra = userExtraRepository.findById(id);
         if (userExtra.isPresent()) {
+            // TODO check if player has active game, and if game does not exist anymore, set active game to null
             return userExtra.get();
         }
         UserExtra newUserExtra = new UserExtra(id, username);

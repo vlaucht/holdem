@@ -1,0 +1,111 @@
+.seat-container {
+    position: relative;
+    width: 10vw;
+    height: 10vw;
+}
+.seat {
+    top: 0
+}
+
+.user-info {
+    width: 100%;
+    height: 35%;
+    bottom: 20%;
+    background: linear-gradient(to right, #393939, #585858);
+    font-size: 1vw;
+    color: white;
+    text-align: center;
+    position: absolute;
+    border-radius: 8px 8px 0 0;
+    display: flex;
+    align-items: center;
+    padding-left: 60px;
+}
+
+.avatar {
+    width: 45%; /* Set width to 100% */
+    padding-bottom: 45%; /* Maintain 1:1 aspect ratio */
+    border-radius: 50%;
+    background-color: white;
+    margin-left: -55px;
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.info {
+    text-align: left; /* Align text to the left */
+    padding-left: 10px; /* Add some spacing between avatar and text */
+}
+
+.player-name {
+    font-weight: bold;
+}
+
+.action {
+    width: 100%;
+    height: 20%;
+    position: absolute;
+    border-radius: 0 0 8px 8px;
+    background-color: #FFD700;
+    font-size: 1em;
+    color: black;
+    font-weight: bold;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    bottom: 0;
+}
+
+
+.hole-cards {
+    width:100%;
+    height:50%;
+    position: absolute;
+    top: 0;
+    display: flex; /* Add display flex */
+    justify-content: center; /* Horizontally center child elements */
+    align-items: center;
+}
+
+.hole-card1 {
+    top:0;
+}
+
+.hole-card2 {
+    top:0;
+}
+
+
+
+.chip {
+    width: 50px;
+    height: 50px;
+    background-color: white;
+    border: 3px dashed #000;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-size: 14px;
+    font-weight: bold;
+    position: absolute;
+    left: -60px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.dealer {
+    border-color: #28a745;
+    color: #28a745;
+}
+
+.small-blind {
+    border-color: #ffc107;
+    color: #ffc107;
+}
+
+.big-blind {
+    border-color: #17a2b8;
+    color: #17a2b8;
+}

@@ -25,11 +25,15 @@ export class PokerService {
      * @return a promise with game state or an error
      */
     async getPokerGameState(gameId: string): Promise<PokerGameState> {
-        return await this.apiController.getRequest<PokerGameState>(`${this.POKER_CONTROLLER_URL}/${gameId}`);
+        return await this.apiController.getRequest<PokerGameState>(`${this.POKER_CONTROLLER_URL}/state/${gameId}`);
     }
 
     async create(payload: PokerGameCreateRequest): Promise<PokerGameState> {
         return await this.apiController.postRequest<PokerGameState>(`${this.POKER_CONTROLLER_URL}/create`, payload);
+    }
+
+    async leave(gameId: string): Promise<void> {
+        return await this.apiController.postRequest<void>(`${this.POKER_CONTROLLER_URL}/leave/${gameId}`);
     }
 
 }

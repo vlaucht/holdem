@@ -14,7 +14,7 @@ interface CreateGameModalProps {
 }
 export const CreateGameModal: React.FunctionComponent<CreateGameModalProps> = ({opened, close}) => {
     const pokerService = useServices().pokerService;
-    const initialFormValues: PokerGameCreateRequest = { name: '', buyIn: 150, maxPlayerCount: 6, tableType: 'NL' };
+    const initialFormValues: PokerGameCreateRequest = { name: '', buyIn: 150, maxPlayerCount: 5, tableType: 'NL' };
     const userExtra = useUser().user;
     const navigate = useNavigate();
 
@@ -50,7 +50,7 @@ export const CreateGameModal: React.FunctionComponent<CreateGameModalProps> = ({
                         <Slider
                             label={null}
                             min={2}
-                            max={6}
+                            max={5}
                             step={1}
                             color="cyan"
                             size="lg"
@@ -59,7 +59,6 @@ export const CreateGameModal: React.FunctionComponent<CreateGameModalProps> = ({
                                 { value: 3, label: '3' },
                                 { value: 4, label: '4' },
                                 { value: 5, label: '5' },
-                                { value: 6, label: '6' },
                             ]}
                             {...form.getInputProps('maxPlayerCount')}
                         />

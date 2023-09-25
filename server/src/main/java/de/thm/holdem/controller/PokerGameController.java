@@ -38,8 +38,8 @@ public class PokerGameController {
     }
 
     @Operation(security = {@SecurityRequirement(name = BEARER_KEY_SECURITY_SCHEME)})
-    @GetMapping(value = "/{gameId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<PokerGameStateDto> get(@RequestParam String gameId, @AuthenticationPrincipal Jwt jwt) throws Exception {
+    @GetMapping(value = "/state/{gameId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<PokerGameStateDto> get(@AuthenticationPrincipal Jwt jwt, @PathVariable String gameId) throws Exception {
         String playerId = jwt.getClaim("sub");
         PokerGame game = pokerGameService.getGame(gameId);
         if (pokerGameService.isPlayerInGame(game, playerId)) {

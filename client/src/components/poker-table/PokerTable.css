@@ -1,0 +1,61 @@
+.poker-table {
+    background: radial-gradient(circle at center, #006400 10%, #003300);
+    height: 60%;
+    width: 60%;
+    border-radius: 50%;
+    margin: 0 auto;
+    border: 1em solid #000;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    position: relative;
+}
+
+
+.poker-table-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}
+
+.board {
+    position: relative;
+    top: 40%;
+    left: 30%;
+    width: 50%;
+}
+
+.seat-1 {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%) translateY(50%);
+}
+
+.seat-2 {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%) translateX(-50%);
+}
+
+.seat-3 {
+    position: absolute;
+    top: 0;
+    left: 25%;
+    transform: translateX(-50%) translateY(-50%);
+}
+
+.seat-4 {
+    position: absolute;
+    top: 0;
+    right: 25%;
+    transform: translateX(50%) translateY(-50%);
+}
+
+.seat-5 {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%) translateX(50%);
+}
+

@@ -1,5 +1,5 @@
 import React from "react";
-import {AppShellHeader, Avatar, Button, Flex, Grid, Group, Title} from '@mantine/core'
+import {AppShellHeader, Avatar, Button, Grid, Group, Title} from '@mantine/core'
 import {IconLogout, IconMoneybag} from "@tabler/icons-react";
 import {useKeycloak} from "@react-keycloak/web";
 import {useUser} from "../../../hooks/user-provider/UserProvider";
@@ -17,6 +17,7 @@ export const Header: React.FunctionComponent = () => {
     return (
         <AppShellHeader
             p="md"
+            style={{height: 80}}
         >
             <Grid>
                 <Grid.Col span={1}/>
