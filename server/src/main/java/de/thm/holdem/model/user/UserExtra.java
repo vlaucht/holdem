@@ -30,10 +30,14 @@ public class UserExtra {
     /** The bankroll of the user. */
     private BigInteger bankroll;
 
+    /** The game the user is currently playing. */
+    private String activeGameId;
+
 
     public UserExtra(String id, String username) {
         this.id = id;
         this.username = username;
+        this.activeGameId = null;
     }
 
     @Override

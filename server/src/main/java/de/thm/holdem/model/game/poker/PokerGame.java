@@ -3,6 +3,7 @@ package de.thm.holdem.model.game.poker;
 import de.thm.holdem.model.card.Card;
 import de.thm.holdem.model.card.Deck;
 import de.thm.holdem.model.game.Game;
+import de.thm.holdem.model.player.Player;
 import de.thm.holdem.model.player.PokerPlayer;
 import de.thm.holdem.utils.PokerHandEvaluator;
 import de.thm.holdem.settings.PokerGameSettings;
@@ -11,6 +12,7 @@ import lombok.Getter;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 
@@ -100,6 +102,25 @@ public class PokerGame extends Game {
         this.deck = new Deck();
         this.currentBlindLevel = 0;
         this.evaluatorFactory = new ClassFactory<>(PokerHandEvaluator.class);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public BigInteger removePlayer(String id) {
+        Iterator<Player> iterator = playerList.iterator();
+        while (iterator.hasNext()) {
+            Player player = iterator.next();
+            if (player.getId().equals(id)) {
+                iterator.remove(); // Remove the player from the list
+                return player.getChips(); // Return the remaining chips
+            }
+        }
+        return BigInteger.ZERO; // Return zero if player was not found
+    }
+
+    @Override
+    public void addPlayer(Player player) {
+        playerList.add(player);
     }
 
    /* *//**

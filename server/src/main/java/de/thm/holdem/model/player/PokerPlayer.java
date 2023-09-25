@@ -34,8 +34,8 @@ public class PokerPlayer extends Player {
     @Setter
     protected PokerPlayerAction lastAction;
 
-    public PokerPlayer(String alias, String avatar, BigInteger bankroll) {
-        super(alias, avatar, bankroll);
+    public PokerPlayer(String id, String alias, String avatar, BigInteger bankroll) {
+        super(id, alias, avatar, bankroll);
         this.isFolded = false;
         this.handScore = 0;
         this.hand = new ArrayList<>(2);

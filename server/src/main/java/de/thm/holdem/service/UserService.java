@@ -2,6 +2,8 @@ package de.thm.holdem.service;
 
 import de.thm.holdem.model.user.UserExtra;
 
+import java.math.BigInteger;
+
 /**
  * Service for the {@link UserExtra}.
  *
@@ -42,4 +44,30 @@ public interface UserService {
      * @return the updated {@link UserExtra}
      */
     UserExtra recharge(String username);
+
+    /**
+     * Set the active game of the user.
+     *
+     * @param id the id of the user
+     * @param gameId the id of the game
+     * @return the updated {@link UserExtra}
+     */
+    UserExtra playGame(String id, String gameId);
+
+    /**
+     * Set the active game of the user and update the bankroll.
+     *
+     * @param userExtra the userExtra with the updated values
+     * @return the saved {@link UserExtra}
+     */
+    UserExtra playGame(UserExtra userExtra);
+
+    /**
+     * Remove the active game of the user.
+     *
+     * @param id the id of the user
+     * @param remainingChips the remaining chips of the user to be added to the bankroll
+     * @return the updated {@link UserExtra}
+     */
+    UserExtra leaveGame(String id, BigInteger remainingChips);
 }

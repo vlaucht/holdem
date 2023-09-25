@@ -29,6 +29,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
 	implementation 'com.nimbusds:nimbus-jose-jwt:9.35'
 	implementation 'com.github.ben-manes.caffeine:caffeine:3.1.8'
+	implementation 'com.google.guava:guava:32.1.2-jre'
 
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'

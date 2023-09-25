@@ -10,7 +10,7 @@ import {UserExtra} from "../../models/UserExtra";
 export class UserService {
     private apiController: ApiController;
 
-    private readonly TEMPLATE_CONTROLLER_URL = 'api/user'
+    private readonly USER_CONTROLLER_URL = 'api/user'
 
     constructor() {
         // TODO: get base url from env
@@ -20,10 +20,10 @@ export class UserService {
     /**
      * Method to get {@link UserExtra} from the api
      *
-     * @return a promise with all templates or an error
+     * @return a promise with the user data or an error
      */
     async getUserExtra(): Promise<UserExtra> {
-        return await this.apiController.getRequest<UserExtra>(`${this.TEMPLATE_CONTROLLER_URL}/me`);
+        return await this.apiController.getRequest<UserExtra>(`${this.USER_CONTROLLER_URL}/me`);
     }
 
 }

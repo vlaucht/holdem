@@ -2,13 +2,12 @@ import React from "react";
 import {AppShell} from "@mantine/core";
 import {Header} from "./header/Header";
 import { Routes as NavRoutes } from './navigation/Routes'
-import {BrowserRouter, Outlet, Route, Routes} from "react-router-dom";
+import {Outlet, Route, Routes} from "react-router-dom";
 
 
 export const Shell: React.FunctionComponent = () => {
 
     return (
-        <BrowserRouter>
             <AppShell
                 header={{height: 60}}
                 padding="md"
@@ -29,6 +28,5 @@ export const Shell: React.FunctionComponent = () => {
                     <Outlet />
                 </AppShell.Main>
             </AppShell>
-        </BrowserRouter>
     )
 }

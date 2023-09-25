@@ -5,15 +5,18 @@ import {PokerGameCreateRequest} from "../../../models/PokerGameCreateRequest";
 import {useServices} from "../../../hooks/service-provider/ServiceProvider";
 import {useUser} from "../../../hooks/user-provider/UserProvider";
 import {UserExtra} from "../../../models/UserExtra";
+import {PokerGameState} from "../../../models/PokerGameState";
+import {useNavigate} from "react-router-dom";
 
 interface CreateGameModalProps {
     opened: boolean;
     close: () => void;
 }
 export const CreateGameModal: React.FunctionComponent<CreateGameModalProps> = ({opened, close}) => {
-    const lobbyService = useServices().lobbyService;
+    const pokerService = useServices().pokerService;
     const initialFormValues: PokerGameCreateRequest = { name: '', buyIn: 150, maxPlayerCount: 6, tableType: 'NL' };
     const userExtra = useUser().user;
+    const navigate = useNavigate();
 
     const  form = useForm({
         initialValues: initialFormValues,
@@ -27,8 +30,8 @@ export const CreateGameModal: React.FunctionComponent<CreateGameModalProps> = ({
     const maxBuyIn = Math.min(1000000, userExtra!.bankroll);
 
     const onSubmit = async (values: PokerGameCreateRequest) => {
-        await lobbyService.create(values);
-        // TODO navigate to game
+        const gameState: PokerGameState = await pokerService.create(values);
+        navigate(`/poker-game/${gameState.id}`);
         close();
     }
 

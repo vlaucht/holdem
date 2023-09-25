@@ -1,9 +1,8 @@
 package de.thm.holdem.service;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import org.springframework.stereotype.Service;
-
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Registry to keep track of user connections.
@@ -16,8 +15,8 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class ConnectionRegistry {
 
-    /** Map of user ids to session ids. */
-    private final Map<String, String> connections = new ConcurrentHashMap<>();
+    /** Bidirectional map of user ids to session ids. */
+    private final BiMap<String, String> connections = HashBiMap.create();
 
     /**
      * Connects a user to a session.
@@ -33,9 +32,10 @@ public class ConnectionRegistry {
      * Disconnects a user from a session.
      *
      * @param sessionId the session id
+     * @return the user id of the disconnected user
      */
-    public void disconnect(String sessionId) {
-        connections.entrySet().removeIf(entry -> entry.getValue().equals(sessionId));
+    public String disconnect(String sessionId) {
+        return connections.inverse().remove(sessionId);
     }
 
     /**

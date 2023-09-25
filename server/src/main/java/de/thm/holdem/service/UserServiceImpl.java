@@ -54,27 +54,48 @@ public class UserServiceImpl implements UserService  {
         return userExtraRepository.save(newUserExtra);
     }
 
+    /** {@inheritDoc} */
     @Override
     public UserExtra getUserExtra(String id) {
         Optional<UserExtra> userExtra = userExtraRepository.findById(id);
         return userExtra.orElseThrow(() -> new UserNotFoundException("User with id " + id + " not found"));
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public UserExtra saveUserExtra(UserExtra userExtra) {
         return userExtraRepository.save(userExtra);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public UserExtra recharge(String id) {
         UserExtra userExtra = getUserExtra(id);
         userExtra.setBankroll(new BigInteger(initialBankroll));
         return userExtraRepository.save(userExtra);
     }
+
+    /** {@inheritDoc} */
+    @Override
+    public UserExtra playGame(String id, String gameId) {
+        UserExtra userExtra = getUserExtra(id);
+        userExtra.setActiveGameId(gameId);
+        return userExtraRepository.save(userExtra);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public UserExtra playGame(UserExtra userExtra) {
+        return userExtraRepository.save(userExtra);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public UserExtra leaveGame(String id, BigInteger remainingChips) {
+        UserExtra userExtra = getUserExtra(id);
+        userExtra.setBankroll(userExtra.getBankroll().add(remainingChips));
+        userExtra.setActiveGameId(null);
+        return userExtraRepository.save(userExtra);
+    }
+
 }

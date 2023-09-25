@@ -1,16 +1,21 @@
 package de.thm.holdem.dto;
 
 import de.thm.holdem.model.game.poker.PokerGame;
+import lombok.Builder;
 import lombok.Data;
 
 @Data
+@Builder
 public class PokerGameStateDto {
-    String gameId;
 
-    PokerGameStateDto() {
-        this.gameId = "testGameId";
-    }
+    String id;
+
+    String name;
+
     public static PokerGameStateDto from(PokerGame game) {
-        return new PokerGameStateDto();
+        return PokerGameStateDto.builder()
+                .id(game.getId())
+                .name(game.getName())
+                .build();
     }
 }

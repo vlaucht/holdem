@@ -3,6 +3,7 @@ package de.thm.holdem.model.game;
 import de.thm.holdem.model.player.Player;
 import lombok.Getter;
 
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.UUID;
@@ -31,4 +32,14 @@ public abstract class Game {
         this.gameStatus = GameStatus.WAITING;
         this.id = UUID.randomUUID().toString();
     }
+
+    /**
+     * Remove the player from the game and return his remaining chips that are not currently in a bet.
+     *
+     * @param id the id of the player to remove
+     * @return the remaining chips of the player
+     */
+    abstract public BigInteger removePlayer(String id);
+
+    abstract public void addPlayer(Player player);
 }

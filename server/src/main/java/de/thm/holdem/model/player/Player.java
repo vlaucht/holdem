@@ -16,6 +16,8 @@ import java.util.Objects;
 @Getter
 public abstract class Player {
 
+    protected final String id;
+
     protected final String alias;
 
     protected final String avatar;
@@ -26,7 +28,8 @@ public abstract class Player {
 
     protected BigInteger currentBet;
 
-    Player(String alias, String avatar, BigInteger bankroll) {
+    Player(String id, String alias, String avatar, BigInteger bankroll) {
+        this.id = id;
         this.alias = alias;
         this.avatar = avatar;
         this.bankroll = bankroll;

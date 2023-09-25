@@ -3,11 +3,17 @@ import {AppShellHeader, Avatar, Button, Flex, Grid, Group, Title} from '@mantine
 import {IconLogout, IconMoneybag} from "@tabler/icons-react";
 import {useKeycloak} from "@react-keycloak/web";
 import {useUser} from "../../../hooks/user-provider/UserProvider";
+import {useServices} from "../../../hooks/service-provider/ServiceProvider";
 
 export const Header: React.FunctionComponent = () => {
     const {keycloak} = useKeycloak();
+    const services = useServices();
     const {user} = useUser();
-    const onLogout = () => { keycloak.logout()   }
+    const onLogout = () => {
+        keycloak.logout();
+        services.webSocketService.disconnect();
+    }
+
     return (
         <AppShellHeader
             p="md"
