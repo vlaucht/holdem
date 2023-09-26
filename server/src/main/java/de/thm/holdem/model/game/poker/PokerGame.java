@@ -191,7 +191,6 @@ public class PokerGame extends Game {
                 buyIn, settings.getTotalTournamentTime(), settings.getTimeToRaiseBlinds());
         currentBlindLevel = 0;
         currentBet = BigInteger.ZERO;
-        deal();
     }
 
     /**

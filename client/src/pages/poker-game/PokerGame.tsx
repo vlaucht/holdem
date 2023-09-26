@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 
-import {Button, Container, Flex, Group, Paper, Stack, Title} from "@mantine/core";
+import {Button, Container, Flex, Paper} from "@mantine/core";
 import {useNavigate, useParams} from "react-router-dom";
 import {useServices} from "../../hooks/service-provider/ServiceProvider";
 import {PokerGameState} from "../../models/PokerGameState";
@@ -84,7 +84,8 @@ export const PokerGame: React.FunctionComponent = () => {
                                 wrap="wrap"
                                 style={{ width: '100%' }}
                             >
-                                <Button disabled={!gameState || gameState && gameState.gameStatus !== 'Waiting for Players'}
+                                <Button disabled={!gameState || gameState && ( gameState.gameStatus !== 'Waiting for Players'
+                                || gameState.players.length < 2 || gameState.players[0].name !== user!.username)}
                                         onClick={startGame} size="sm" color="cyan">Start Game</Button>
                                 <Button onClick={open} size="sm" color="red">Leave Game</Button>
                             </Flex>

@@ -83,8 +83,9 @@ public class PokerGameServiceImpl implements PokerGameService, GameListener {
         if (game == null) {
             throw new NotFoundException("Game not found");
         }
-        if (!game.getCreator().equals(playerId)) {
-            throw new GameActionException("Only the owner can start the game.");
+        // only creator should be able to start the game, but if he leaves, there should be a backup
+        if (!game.getPlayerList().get(0).getId().equals(playerId)) {
+            throw new GameActionException("You can not start this game.");
         }
         game.startGame();
         gameLobbyService.broadcast(game, ClientOperation.UPDATE);

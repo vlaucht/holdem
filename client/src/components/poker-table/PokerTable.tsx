@@ -38,7 +38,6 @@ export const PokerTable: React.FunctionComponent<GameTableProps> = ({ game }) =>
     ];
 
     const deal = () => {
-        console.log(boardCardRefs)
         toggleHoleCardVisibility(false);
         toggleBoardCardVisibility(false);
         animateSeatCardFly(game, seatElements, flyingCardRef, dealerIndex, 2, () => {
@@ -81,7 +80,7 @@ export const PokerTable: React.FunctionComponent<GameTableProps> = ({ game }) =>
     });
 
     useEffect(() => {
-      deal();
+     // deal();
     }, []);
 
 
