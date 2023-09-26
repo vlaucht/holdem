@@ -32,7 +32,7 @@ public class Deck {
     /**
      * Method to shuffle the deck.
      */
-    public void shuffleDeck() {
+    public void shuffle() {
         Collections.shuffle(deck);
     }
 

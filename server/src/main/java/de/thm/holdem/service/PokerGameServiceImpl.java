@@ -52,16 +52,39 @@ public class PokerGameServiceImpl implements PokerGameService {
     }
 
 
-    public PokerGame joinGame(String gameID, String player) throws Exception {
-        return null;
+    public PokerGame joinGame(String gameId, String userId) throws NotFoundException, GameActionException {
+        PokerGame game = registry.getGame(gameId);
+        if (game == null) {
+            throw new NotFoundException("Game not found");
+        }
+        UserExtra userExtra = userService.getUserExtra(userId);
+        if (userExtra.getBankroll().compareTo(game.getBuyIn()) < 0) {
+            throw new GameActionException("Not enough cash to join the game.");
+        }
+        PokerPlayer pokerPlayer = new PokerPlayer(userId, userExtra.getUsername(), userExtra.getAvatar(),
+                userExtra.getBankroll());
+        userExtra.setBankroll(pokerPlayer.joinGame(game.getBuyIn()));
+        userExtra.setActiveGameId(game.getId());
+        userService.playGame(userExtra);
+        gameLobbyService.notifyBankrollChange(userExtra);
+        gameLobbyService.broadcast(game, ClientOperation.UPDATE);
+        broadcastGameState(game);
+        return game;
     }
 
     /** {@inheritDoc} */
     public void leaveGame(String gameID, String playerId) throws NotFoundException {
         PokerGame game = registry.getGame(gameID);
-        BigInteger remainingChips = game.removePlayer(playerId);
+        Player player = game.getPlayerById(playerId);
 
-        userService.leaveGame(playerId, remainingChips);
+        if (player == null) {
+            throw new NotFoundException("Player not found");
+        }
+
+        BigInteger bankroll = player.leaveGame();
+        game.removePlayer(player);
+
+        userService.leaveGame(playerId, bankroll);
 
         if (game.getPlayerList().size() == 0) {
             registry.removeGame(gameID);

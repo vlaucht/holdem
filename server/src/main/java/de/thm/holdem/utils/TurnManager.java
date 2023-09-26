@@ -1,22 +1,20 @@
 package de.thm.holdem.utils;
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Objects;
+import java.util.*;
 
 public class TurnManager {
 
     /**
-     * Finds the next element in a collection based on the current element.
+     * Finds the next element in a list based on the current element.
      *
      * <p>
      *     This method searches for the element that follows the specified 'target'
-     *     element in the given 'collection'. The search can be configured to be circular,
+     *     element in the given list. The search can be configured to be circular,
      *     meaning it wraps around to the beginning of the collection when the end is reached.
      * </p>
      *
      * @param <T>        The type of elements in the collection.
-     * @param collection The collection in which to search for the next element.
+     * @param list       The list in which to search for the next element.
      * @param target     The current element for which to find the next element.
      * @param isCircular   A boolean flag indicating whether the search should be circular.
      *                   If 'true', the search wraps around to the beginning of the collection.

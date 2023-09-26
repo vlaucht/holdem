@@ -43,7 +43,7 @@ public abstract class Player {
      *
      * @param amount the amount of chips to add
      */
-    public void addToBankroll(BigInteger amount) {
+    private void addToBankroll(BigInteger amount) {
         bankroll = bankroll.add(amount);
     }
 
@@ -62,11 +62,14 @@ public abstract class Player {
      * <p>
      *     Will add the players chips that are not currently bet to the players bankroll and reset the player.
      * </p>
+     *
+     * @return the remaining bankroll after the leave.
      */
-    public void leaveGame() {
-        bankroll = bankroll.add(chips);
+    public BigInteger leaveGame() {
+        addToBankroll(chips);
         chips = BigInteger.ZERO;
         reset();
+        return bankroll;
     }
 
     /**
@@ -76,8 +79,8 @@ public abstract class Player {
      *     Will remove the initial chips from the players bankroll and add them to the players chips.
      * </p>
      *
-     * @param buyIn the amount of chips to buy in
-     * @return the remaining bankroll after the buy in
+     * @param buyIn the amount of chips to buy in.
+     * @return the remaining bankroll after the buy in.
      */
     public BigInteger joinGame(BigInteger buyIn) {
         chips = buyIn;
@@ -131,12 +134,12 @@ public abstract class Player {
         if (this == obj) return true;
         if (obj == null || getClass() != obj.getClass()) return false;
         Player player = (Player) obj;
-        return Objects.equals(this.alias, player.alias);
+        return Objects.equals(this.id, player.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.alias);
+        return Objects.hash(this.id);
     }
 
     @Override

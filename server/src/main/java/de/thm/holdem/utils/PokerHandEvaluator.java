@@ -60,7 +60,7 @@ public class PokerHandEvaluator {
      */
     private int checkValueHand(ArrayList<Card> cardArrayList) {
         sortList(cardArrayList);
-        if (isFlush(cardArrayList) && isStraight(cardArrayList) && getOrderValue(cardArrayList, 4) == 14) return ROYAL_FLUSH;
+        if (isFlush(cardArrayList) && isStraight(cardArrayList) && getValue(cardArrayList, 4) == 14) return ROYAL_FLUSH;
         else if (isFlush(cardArrayList) && isStraight(cardArrayList)) return valueStraightFlush(cardArrayList);
         else if (isFourOfAKind(cardArrayList)) return valueFourOfAKind(cardArrayList);
         else if (isFullHouse(cardArrayList)) return valueFullHouse(cardArrayList);
@@ -127,13 +127,13 @@ public class PokerHandEvaluator {
      */
     private boolean isStraight(ArrayList<Card> cards) {
         int testRank;
-        if (getOrderValue(cards, 4) == 14) { // if hand has an ace
-            return (getOrderValue(cards, 0) == 2 && getOrderValue(cards, 1) == 3 && getOrderValue(cards, 2) == 4 && getOrderValue(cards, 3) == 5) ||
-                    (getOrderValue(cards, 0) == 10 && getOrderValue(cards, 1) == 11 && getOrderValue(cards, 2) == 12 && getOrderValue(cards, 3) == 13);
+        if (getValue(cards, 4) == 14) { // if hand has an ace
+            return (getValue(cards, 0) == 2 && getValue(cards, 1) == 3 && getValue(cards, 2) == 4 && getValue(cards, 3) == 5) ||
+                    (getValue(cards, 0) == 10 && getValue(cards, 1) == 11 && getValue(cards, 2) == 12 && getValue(cards, 3) == 13);
         } else {
-            testRank = getOrderValue(cards, 0) + 1; // if hand does not have an ace
+            testRank = getValue(cards, 0) + 1; // if hand does not have an ace
             for (int i = 1; i < 5; i++) {
-                if (cards.get(i).rank().getNumericValue() != testRank) return false;  // Straight not found
+                if (cards.get(i).rank().getValue() != testRank) return false;  // Straight not found
                 testRank++;
             }
             return true;        // Straight found !
@@ -147,8 +147,8 @@ public class PokerHandEvaluator {
      * @return true IF hand contains FOUR OF A KIND
      */
     private boolean isFourOfAKind(ArrayList<Card> cards) {
-        return (getOrderValue(cards, 0) == getOrderValue(cards, 1) && getOrderValue(cards, 1) == getOrderValue(cards, 2) && getOrderValue(cards, 2) == getOrderValue(cards, 3)) ||
-                (getOrderValue(cards, 1) == getOrderValue(cards, 2) && getOrderValue(cards, 2) == getOrderValue(cards, 3) && getOrderValue(cards, 3) == getOrderValue(cards, 4));
+        return (getValue(cards, 0) == getValue(cards, 1) && getValue(cards, 1) == getValue(cards, 2) && getValue(cards, 2) == getValue(cards, 3)) ||
+                (getValue(cards, 1) == getValue(cards, 2) && getValue(cards, 2) == getValue(cards, 3) && getValue(cards, 3) == getValue(cards, 4));
     }
 
     /**
@@ -158,8 +158,8 @@ public class PokerHandEvaluator {
      * @return true IF hand is a full house
      */
     private boolean isFullHouse(ArrayList<Card> cards) {
-        return (getOrderValue(cards, 0) == getOrderValue(cards, 1) && getOrderValue(cards, 1) == getOrderValue(cards, 2) && getOrderValue(cards, 3) == getOrderValue(cards, 4)) ||
-                (getOrderValue(cards, 0) == getOrderValue(cards, 1) && getOrderValue(cards, 2) == getOrderValue(cards, 3) && getOrderValue(cards, 3) == getOrderValue(cards, 4));
+        return (getValue(cards, 0) == getValue(cards, 1) && getValue(cards, 1) == getValue(cards, 2) && getValue(cards, 3) == getValue(cards, 4)) ||
+                (getValue(cards, 0) == getValue(cards, 1) && getValue(cards, 2) == getValue(cards, 3) && getValue(cards, 3) == getValue(cards, 4));
     }
 
     /**
@@ -172,9 +172,9 @@ public class PokerHandEvaluator {
         boolean a, b, c;
         if (isFourOfAKind(cards) || isFullHouse(cards)) return false;
 
-        a = getOrderValue(cards, 0) == getOrderValue(cards, 1) && getOrderValue(cards, 1) == getOrderValue(cards, 2);
-        b = getOrderValue(cards, 1) == getOrderValue(cards, 2) && getOrderValue(cards, 2) == getOrderValue(cards, 3);
-        c = getOrderValue(cards, 2) == getOrderValue(cards, 3) && getOrderValue(cards, 3) == getOrderValue(cards, 4);
+        a = getValue(cards, 0) == getValue(cards, 1) && getValue(cards, 1) == getValue(cards, 2);
+        b = getValue(cards, 1) == getValue(cards, 2) && getValue(cards, 2) == getValue(cards, 3);
+        c = getValue(cards, 2) == getValue(cards, 3) && getValue(cards, 3) == getValue(cards, 4);
         return (a || b || c);
     }
 
@@ -188,9 +188,9 @@ public class PokerHandEvaluator {
         boolean a, b, c;
 
         if (isFourOfAKind(cards) || isFullHouse(cards) || isThreeOfAKind(cards)) return false;
-        a = getOrderValue(cards, 0) == getOrderValue(cards, 1) && getOrderValue(cards, 2) == getOrderValue(cards, 3);
-        b = getOrderValue(cards, 0) == getOrderValue(cards, 1) && getOrderValue(cards, 3) == getOrderValue(cards, 4);
-        c = getOrderValue(cards, 1) == getOrderValue(cards, 2) && getOrderValue(cards, 3) == getOrderValue(cards, 4);
+        a = getValue(cards, 0) == getValue(cards, 1) && getValue(cards, 2) == getValue(cards, 3);
+        b = getValue(cards, 0) == getValue(cards, 1) && getValue(cards, 3) == getValue(cards, 4);
+        c = getValue(cards, 1) == getValue(cards, 2) && getValue(cards, 3) == getValue(cards, 4);
         return (a || b || c);
     }
 
@@ -204,10 +204,10 @@ public class PokerHandEvaluator {
         boolean a, b, c, d;
 
         if (isFourOfAKind(cards) || isFullHouse(cards) || isThreeOfAKind(cards) || isTwoPairs(cards)) return false;
-        a = getOrderValue(cards, 0) == getOrderValue(cards, 1);
-        b = getOrderValue(cards, 1) == getOrderValue(cards, 2);
-        c = getOrderValue(cards, 2) == getOrderValue(cards, 3);
-        d = getOrderValue(cards, 3) == getOrderValue(cards, 4);
+        a = getValue(cards, 0) == getValue(cards, 1);
+        b = getValue(cards, 1) == getValue(cards, 2);
+        c = getValue(cards, 2) == getValue(cards, 3);
+        d = getValue(cards, 3) == getValue(cards, 4);
         return (a || b || c || d);
     }
 
@@ -227,8 +227,8 @@ public class PokerHandEvaluator {
      * @param pos the position of the card the order is needed from
      * @return the order of the card (int value from 2 (TWO) - 14(ACE))
      */
-    private int getOrderValue(ArrayList<Card> cards, int pos) {
-        return cards.get(pos).rank().getNumericValue();
+    private int getValue(ArrayList<Card> cards, int pos) {
+        return cards.get(pos).rank().getValue();
     }
 
     /**
@@ -279,9 +279,9 @@ public class PokerHandEvaluator {
      * @return FULL_HOUSE (6000000) + IF xxyyy -> 2* order(x) + 3* order(y) ELSE 3* order(x) + 2* order(y)
      */
     private int valueFullHouse(ArrayList<Card> cards) {
-        return FULL_HOUSE + ((getOrderValue(cards, 0) == getOrderValue(cards, 2))
-                ? (3 * getOrderValue(cards, 0) + 2 * getOrderValue(cards, 3))
-                : (2 * getOrderValue(cards, 0) + 3 * getOrderValue(cards, 3)));
+        return FULL_HOUSE + ((getValue(cards, 0) == getValue(cards, 2))
+                ? (3 * getValue(cards, 0) + 2 * getValue(cards, 3))
+                : (2 * getValue(cards, 0) + 3 * getValue(cards, 3)));
     }
 
 
@@ -292,9 +292,9 @@ public class PokerHandEvaluator {
      * @return SET (3000000) + IF xxxyz -> 3* order(x) + order(y) + order(z) ELSE 3* order(z) + order(y) + order(x)
      */
     private int valueSet(ArrayList<Card> cards) {
-        return SET + ((getOrderValue(cards, 0) == getOrderValue(cards, 2))
-                ? (3 * getOrderValue(cards, 0) + getOrderValue(cards, 3) + getOrderValue(cards, 4))
-                : (getOrderValue(cards, 0) + getOrderValue(cards, 1) + 3 * getOrderValue(cards, 2)));
+        return SET + ((getValue(cards, 0) == getValue(cards, 2))
+                ? (3 * getValue(cards, 0) + getValue(cards, 3) + getValue(cards, 4))
+                : (getValue(cards, 0) + getValue(cards, 1) + 3 * getValue(cards, 2)));
     }
 
 
@@ -306,12 +306,12 @@ public class PokerHandEvaluator {
      */
     private int valueTwoPairs(ArrayList<Card> cards) {
         int val;
-        if (getOrderValue(cards, 0) == getOrderValue(cards, 1) && getOrderValue(cards, 2) == getOrderValue(cards, 3))
-            val = (int) (Math.pow(14, 2) * getOrderValue(cards, 2) + 14 * getOrderValue(cards, 0) + getOrderValue(cards, 4));
-        else if (getOrderValue(cards, 0) == getOrderValue(cards, 1) && getOrderValue(cards, 3) == getOrderValue(cards, 4))
-            val = (int) (Math.pow(14, 2) * getOrderValue(cards, 3) + 14 * getOrderValue(cards, 0) + getOrderValue(cards, 2));
+        if (getValue(cards, 0) == getValue(cards, 1) && getValue(cards, 2) == getValue(cards, 3))
+            val = (int) (Math.pow(14, 2) * getValue(cards, 2) + 14 * getValue(cards, 0) + getValue(cards, 4));
+        else if (getValue(cards, 0) == getValue(cards, 1) && getValue(cards, 3) == getValue(cards, 4))
+            val = (int) (Math.pow(14, 2) * getValue(cards, 3) + 14 * getValue(cards, 0) + getValue(cards, 2));
         else
-            val = (int) (Math.pow(14, 2) * getOrderValue(cards, 3) + 14 * getOrderValue(cards, 1) + getOrderValue(cards, 0));
+            val = (int) (Math.pow(14, 2) * getValue(cards, 3) + 14 * getValue(cards, 1) + getValue(cards, 0));
 
         return TWO_PAIRS + val;
     }
@@ -323,18 +323,18 @@ public class PokerHandEvaluator {
      */
     private int valueOnePair(ArrayList<Card> cards) {
         int val;
-        if (getOrderValue(cards, 0) == getOrderValue(cards, 1))
-            val = (int) (Math.pow(14, 3) * getOrderValue(cards, 0) + getOrderValue(cards, 2)
-                    + 14 * getOrderValue(cards, 3) + Math.pow(14, 2) * getOrderValue(cards, 4));
-        else if (getOrderValue(cards, 1) == getOrderValue(cards, 2))
-            val = (int) (Math.pow(14, 3) * getOrderValue(cards, 1) + getOrderValue(cards, 0)
-                    + 14 * getOrderValue(cards, 3) + Math.pow(14, 2) * getOrderValue(cards, 4));
-        else if (getOrderValue(cards, 2) == getOrderValue(cards, 3))
-            val = (int) (Math.pow(14, 3) * getOrderValue(cards, 2) + getOrderValue(cards, 0)
-                    + 14 * getOrderValue(cards, 1) + Math.pow(14, 2) * getOrderValue(cards, 4));
+        if (getValue(cards, 0) == getValue(cards, 1))
+            val = (int) (Math.pow(14, 3) * getValue(cards, 0) + getValue(cards, 2)
+                    + 14 * getValue(cards, 3) + Math.pow(14, 2) * getValue(cards, 4));
+        else if (getValue(cards, 1) == getValue(cards, 2))
+            val = (int) (Math.pow(14, 3) * getValue(cards, 1) + getValue(cards, 0)
+                    + 14 * getValue(cards, 3) + Math.pow(14, 2) * getValue(cards, 4));
+        else if (getValue(cards, 2) == getValue(cards, 3))
+            val = (int) (Math.pow(14, 3) * getValue(cards, 2) + getValue(cards, 0)
+                    + 14 * getValue(cards, 1) + Math.pow(14, 2) * getValue(cards, 4));
         else
-            val = (int) (Math.pow(14, 3) * getOrderValue(cards, 3) + getOrderValue(cards, 0)
-                    + 14 * getOrderValue(cards, 1) + Math.pow(14, 2) * getOrderValue(cards, 2));
+            val = (int) (Math.pow(14, 3) * getValue(cards, 3) + getValue(cards, 0)
+                    + 14 * getValue(cards, 1) + Math.pow(14, 2) * getValue(cards, 2));
 
         return ONE_PAIR + val;
     }
@@ -346,11 +346,11 @@ public class PokerHandEvaluator {
      * @return 14^4* highestCard + 14^3* 2ndHighestCard + 14^2* 3rdHighestCard + 14* 4thHighestCard + LowestCard
      */
     private int valueHighCard(ArrayList<Card> cards) {
-        return (int) (getOrderValue(cards, 0)
-                        + 14 * getOrderValue(cards, 1)
-                        + Math.pow(14, 2) * getOrderValue(cards, 2)
-                        + Math.pow(14, 3) * getOrderValue(cards, 3)
-                        + Math.pow(14, 4) * getOrderValue(cards, 4));
+        return (int) (getValue(cards, 0)
+                        + 14 * getValue(cards, 1)
+                        + Math.pow(14, 2) * getValue(cards, 2)
+                        + Math.pow(14, 3) * getValue(cards, 3)
+                        + Math.pow(14, 4) * getValue(cards, 4));
     }
 
 }

@@ -1,6 +1,7 @@
 package de.thm.holdem.service;
 
 import de.thm.holdem.dto.PokerGameCreateRequest;
+import de.thm.holdem.exception.GameActionException;
 import de.thm.holdem.exception.NotFoundException;
 import de.thm.holdem.model.game.poker.PokerGame;
 
@@ -36,5 +37,7 @@ public interface PokerGameService {
     PokerGame getGame(String gameId) throws NotFoundException;
 
     boolean isPlayerInGame(PokerGame game, String playerId);
+
+    PokerGame joinGame(String gameId, String userId) throws NotFoundException, GameActionException;
 
 }

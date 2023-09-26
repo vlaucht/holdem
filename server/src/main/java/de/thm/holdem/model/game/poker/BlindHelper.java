@@ -1,5 +1,6 @@
 package de.thm.holdem.model.game.poker;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,17 +17,17 @@ public class BlindHelper {
      * @param timeToRaiseBlinds the time between each blind increase
      * @return list of small blind values, big blinds will be double the small blind
      */
-    public static List<Integer> calculateBlindLevels(int numOfPlayers, int buyIn, int totalTournamentTime, int timeToRaiseBlinds) {
-
-        List<Integer> blindLevels = new ArrayList<>();
-        int finalBigBlind = (numOfPlayers * buyIn) / 10;
+    public static List<BigInteger> calculateBlindLevels(int numOfPlayers, BigInteger buyIn, int totalTournamentTime, int timeToRaiseBlinds) {
+        int calculatedBuyIn = buyIn.intValue();
+        List<BigInteger> blindLevels = new ArrayList<>();
+        int finalBigBlind = (numOfPlayers * calculatedBuyIn) / 10;
         int numOfBlindIncreases = numberOfLevels(timeToRaiseBlinds, totalTournamentTime);
 
         double growthFactor = calculateGrowthFactor(finalBigBlind, numOfBlindIncreases);
 
         for (int i = 0; i < numOfBlindIncreases; i++) {
             int blindLevel = calculateBlindLevel(growthFactor, i);
-            blindLevels.add(blindLevel);
+            blindLevels.add(BigInteger.valueOf(blindLevel));
         }
         return blindLevels;
     }

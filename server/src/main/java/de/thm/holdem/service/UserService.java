@@ -66,8 +66,8 @@ public interface UserService {
      * Remove the active game of the user.
      *
      * @param id the id of the user
-     * @param remainingChips the remaining chips of the user to be added to the bankroll
+     * @param bankroll the new bankroll of the user
      * @return the updated {@link UserExtra}
      */
-    UserExtra leaveGame(String id, BigInteger remainingChips);
+    UserExtra leaveGame(String id, BigInteger bankroll);
 }

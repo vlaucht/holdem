@@ -4,7 +4,6 @@ import de.thm.holdem.exception.GameActionException;
 import de.thm.holdem.model.card.Card;
 import de.thm.holdem.model.game.poker.PokerPlayerAction;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
@@ -15,14 +14,6 @@ import java.util.List;
 @Getter
 public class PokerPlayer extends Player {
 
-    /** boolean to indicate if the player is folded */
-    @Accessors(fluent = true)
-    protected boolean isFolded;
-
-    /** boolean to indicate if the player is all in */
-    @Accessors(fluent = true)
-    protected boolean isAllIn;
-
     /** The score of the players hand */
     private int handScore;
 
@@ -31,14 +22,33 @@ public class PokerPlayer extends Player {
     protected List<Card> hand;
 
     /** The last action performed by the player */
-    @Setter
     protected PokerPlayerAction lastAction;
+
+    /** Indicates if the player has folded */
+    @Accessors(fluent = true)
+    private boolean isFolded;
+
+    @Getter
+    private final List<PokerPlayerAction> allowedActions;
+
+    @Setter
+    private boolean mustShowCards;
+
+    @Setter
+    private BigInteger potShare;
+
 
     public PokerPlayer(String id, String alias, String avatar, BigInteger bankroll) {
         super(id, alias, avatar, bankroll);
-        this.isFolded = false;
         this.handScore = 0;
         this.hand = new ArrayList<>(2);
+        this.isFolded = false;
+        this.allowedActions = new ArrayList<>();
+        this.potShare = BigInteger.ZERO;
+    }
+
+    public boolean canDoAction(PokerPlayerAction allowedAction) {
+    	return this.allowedActions.contains(allowedAction);
     }
 
 
@@ -54,16 +64,49 @@ public class PokerPlayer extends Player {
         this.hand.add(card);
     }
 
+    public void payBigBlind(BigInteger bigBlind) {
+        lastAction = PokerPlayerAction.BIG_BLIND;
+        chips = chips.subtract(bigBlind);
+        currentBet = currentBet.add(bigBlind);
+    }
 
+    public void paySmallBlind(BigInteger smallBlind) {
+        lastAction = PokerPlayerAction.SMALL_BLIND;
+        chips = chips.subtract(smallBlind);
+        currentBet = currentBet.add(smallBlind);
+    }
+
+    public void call(BigInteger bet) {
+        lastAction = PokerPlayerAction.CALL;
+        chips = chips.subtract(bet);
+        currentBet = currentBet.add(bet);
+    }
+
+    public void check() {
+        lastAction = PokerPlayerAction.CHECK;
+    }
+
+    public void setLastAction(PokerPlayerAction action) {
+        this.lastAction = action;
+    }
+
+    /** Indicates if the player is not participating anymore but still in the game (e.g. no cash left) */
+    public boolean isSpectator() {
+        return hand.size() == 0 && chips.equals(BigInteger.ZERO);
+    }
+
+
+    public boolean isAllIn() {
+        return hand.size() > 0 && chips.equals(BigInteger.ZERO);
+    }
 
     /**
      * Method to fold the players hand.
      */
     public void fold() {
+        this.lastAction = PokerPlayerAction.FOLD;
         this.isFolded = true;
     }
-
-
 
 
     /**
@@ -76,15 +119,16 @@ public class PokerPlayer extends Player {
     public void reset() {
         super.reset();
         this.isFolded = false;
-        this.isAllIn = false;
         this.lastAction = null;
         this.handScore = 0;
         this.hand.clear();
+        this.allowedActions.clear();
+        this.mustShowCards = false;
+        this.potShare = BigInteger.ZERO;
     }
 
 
     public void setHandScore(int score) {
-        System.out.println(this);
         this.handScore = score;
     }
 

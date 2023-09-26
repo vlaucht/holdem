@@ -1,11 +1,14 @@
 package de.thm.holdem.model.game;
 
+import de.thm.holdem.exception.GameActionException;
 import de.thm.holdem.model.player.Player;
 import lombok.Getter;
 
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 import java.util.UUID;
 
 @Getter
@@ -34,12 +37,26 @@ public abstract class Game {
     }
 
     /**
-     * Remove the player from the game and return his remaining chips that are not currently in a bet.
+     * Remove the player from the game.
      *
-     * @param id the id of the player to remove
-     * @return the remaining chips of the player
+     * @param player the player to remove
      */
-    abstract public BigInteger removePlayer(String id);
+    abstract public void removePlayer(Player player);
 
-    abstract public void addPlayer(Player player);
+    abstract public void addPlayer(Player player) throws Exception;
+
+    /**
+     * Method to get a random player from the player list.
+     *
+     * @return a random player.
+     */
+    public Player getRandomPlayer() {
+        if (playerList == null || playerList.isEmpty()) {
+            return null;
+        }
+
+        Random random = new Random();
+        int randomIndex = random.nextInt(playerList.size());
+        return playerList.get(randomIndex);
+    }
 }

@@ -21,6 +21,6 @@ public class PokerGameCreateRequest {
     private TableType tableType;
 
     @Min(value = 2, message = "Minimum player count must be at least 2.")
-    @Max(value = 6, message = "Maximum player count cannot exceed 6.")
+    @Max(value = 5, message = "Maximum player count cannot exceed 5.")
     private int maxPlayerCount;
 }

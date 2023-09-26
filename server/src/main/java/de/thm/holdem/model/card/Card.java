@@ -14,6 +14,6 @@ public record Card(Rank rank, Suit suit) implements Comparable<Card> {
 
     @Override
     public int compareTo(Card card) {
-        return Integer.compare(this.rank.getNumericValue(), card.rank.getNumericValue());
+        return Integer.compare(this.rank.getValue(), card.rank.getValue());
     }
 }

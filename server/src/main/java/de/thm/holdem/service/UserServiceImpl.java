@@ -92,9 +92,9 @@ public class UserServiceImpl implements UserService  {
 
     /** {@inheritDoc} */
     @Override
-    public UserExtra leaveGame(String id, BigInteger remainingChips) {
+    public UserExtra leaveGame(String id, BigInteger bankroll) {
         UserExtra userExtra = getUserExtra(id);
-        userExtra.setBankroll(userExtra.getBankroll().add(remainingChips));
+        userExtra.setBankroll(bankroll);
         userExtra.setActiveGameId(null);
         return userExtraRepository.save(userExtra);
     }

@@ -30,11 +30,13 @@ public class PokerGameController {
     @Value("${api.base-url}")
     private String baseUrl;
 
-    @PostMapping("/join/{gameId}")
+    @Operation(security = {@SecurityRequirement(name = BEARER_KEY_SECURITY_SCHEME)})
+    @PostMapping(value ="/join/{gameId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<PokerGameStateDto> join(@PathVariable String gameId, @AuthenticationPrincipal Jwt jwt) throws Exception {
+        String playerId = jwt.getClaim("sub");
+        PokerGame game = pokerGameService.joinGame(gameId, playerId);
+        return ResponseEntity.ok().body(PokerGameStateDto.from(game));
 
-       // return ResponseEntity.ok(pokerGameService.joinGame(request.gameId(), request.playerName()));
-        return null;
     }
 
     @Operation(security = {@SecurityRequirement(name = BEARER_KEY_SECURITY_SCHEME)})

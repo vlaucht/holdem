@@ -12,19 +12,19 @@ public enum Rank {
     TEN("10", 10), JACK("J", 11), QUEEN("Q", 12), KING("K", 13),
     ACE("A", 14);
 
-    private final String value;
-    private final int numericValue;
+    private final String symbol;
+    private final int value;
 
-    Rank(String value, int order) {
+    Rank(String symbol, int value) {
+        this.symbol = symbol;
         this.value = value;
-        this.numericValue = order;
     }
 
-    public String getValue() {
+    public String getSymbol() {
+        return symbol;
+    }
+
+    public int getValue() {
         return value;
-    }
-
-    public int getNumericValue() {
-        return numericValue;
     }
 }
