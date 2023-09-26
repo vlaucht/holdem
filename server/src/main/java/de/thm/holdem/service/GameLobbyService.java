@@ -35,10 +35,5 @@ public interface GameLobbyService {
      */
     void broadcastAll();
 
-    /**
-     * Notifies a user about his bankroll change.
-     *
-     * @param userExtra the {@link de.thm.holdem.model.user.UserExtra}
-     */
-    void notifyBankrollChange(UserExtra userExtra);
+
 }

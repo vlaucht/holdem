@@ -1,10 +1,9 @@
 package de.thm.holdem.model.game;
 
-import de.thm.holdem.exception.GameActionException;
+import de.thm.holdem.dto.ClientOperation;
 import de.thm.holdem.model.player.Player;
 import lombok.Getter;
 
-import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +20,8 @@ public abstract class Game {
     protected GameStatus gameStatus;
 
     protected ArrayList<Player> playerList;
+
+    protected List<GameListener> listeners = new ArrayList<>();
 
     /** Time of creation */
     private final LocalDate creationDate;
@@ -44,6 +45,20 @@ public abstract class Game {
     abstract public void removePlayer(Player player);
 
     abstract public void addPlayer(Player player) throws Exception;
+
+    public void addListener(GameListener listener) {
+        listeners.add(listener);
+    }
+
+    public void removeListener(GameListener listener) {
+        listeners.remove(listener);
+    }
+
+    abstract protected void notifyPlayers();
+
+    abstract protected void notifyPlayer(Player player);
+
+    abstract protected void notifyGameState(ClientOperation operation);
 
     /**
      * Method to get a random player from the player list.

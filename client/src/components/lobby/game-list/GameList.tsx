@@ -1,13 +1,22 @@
 import React from "react";
 import {Button, Table} from "@mantine/core";
 import {PokerGameLobbyDto} from "../../../models/PokerGameLobbyDto";
+import {useServices} from "../../../hooks/service-provider/ServiceProvider";
+import {useNavigate} from "react-router-dom";
 
 interface GameListProps {
     games: PokerGameLobbyDto[];
 }
 
 export const GameList: React.FunctionComponent<GameListProps> = ({games}) => {
-
+    const services = useServices();
+    const navigate = useNavigate();
+    const joinGame = async (gameId: string) => {
+        const game = await services.pokerService.join(gameId);
+        if (game.id) {
+            navigate(`/poker-game/${game.id}`);
+        }
+    }
     return (
             <Table highlightOnHover horizontalSpacing="xl">
                 <Table.Thead>
@@ -28,7 +37,9 @@ export const GameList: React.FunctionComponent<GameListProps> = ({games}) => {
                             <Table.Td>{game.buyIn}</Table.Td>
                             <Table.Td>{game.gameStatus}</Table.Td>
                             <Table.Td>{game.tableType}</Table.Td>
-                            <Table.Td><Button disabled={game.gameStatus !== 'Waiting for Players'} color="green">JOIN</Button></Table.Td>
+                            <Table.Td><Button onClick={() => joinGame(game.gameId)}
+                                              disabled={game.gameStatus !== 'Waiting for Players'}
+                                              color="green">JOIN</Button></Table.Td>
                         </Table.Tr>
                     ))}
                 </Table.Tbody>

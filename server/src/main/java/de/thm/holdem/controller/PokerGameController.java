@@ -36,7 +36,6 @@ public class PokerGameController {
         String playerId = jwt.getClaim("sub");
         PokerGame game = pokerGameService.joinGame(gameId, playerId);
         return ResponseEntity.ok().body(PokerGameStateDto.from(game));
-
     }
 
     @Operation(security = {@SecurityRequirement(name = BEARER_KEY_SECURITY_SCHEME)})
@@ -66,6 +65,14 @@ public class PokerGameController {
     public ResponseEntity<Void> leave(@PathVariable String gameId, @AuthenticationPrincipal Jwt jwt) throws Exception {
         String playerId = jwt.getClaim("sub");
         pokerGameService.leaveGame(gameId, playerId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(security = {@SecurityRequirement(name = BEARER_KEY_SECURITY_SCHEME)})
+    @PostMapping("/start/{gameId}")
+    public ResponseEntity<Void> start(@PathVariable String gameId, @AuthenticationPrincipal Jwt jwt) throws Exception {
+        String playerId = jwt.getClaim("sub");
+        pokerGameService.startGame(gameId, playerId);
         return ResponseEntity.noContent().build();
     }
 

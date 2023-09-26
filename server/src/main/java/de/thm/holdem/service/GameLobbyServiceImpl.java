@@ -42,8 +42,5 @@ public class GameLobbyServiceImpl implements GameLobbyService {
         websocketService.broadcast("/topic/lobby", PokerGameLobbyDto.from(game, operation));
     }
 
-    /** {@inheritDoc} */
-    public void notifyBankrollChange(UserExtra userExtra) {
-        websocketService.sendPrivate(userExtra.getId(), "bankroll", userExtra.getBankroll());
-    }
+
 }

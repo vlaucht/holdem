@@ -36,4 +36,12 @@ export class PokerService {
         return await this.apiController.postRequest<void>(`${this.POKER_CONTROLLER_URL}/leave/${gameId}`);
     }
 
+    async join(gameId: string): Promise<PokerGameState> {
+        return await this.apiController.postRequest<PokerGameState>(`${this.POKER_CONTROLLER_URL}/join/${gameId}`);
+    }
+
+    async startGame(gameId: string): Promise<PokerGameState> {
+        return await this.apiController.postRequest<PokerGameState>(`${this.POKER_CONTROLLER_URL}/start/${gameId}`);
+    }
+
 }

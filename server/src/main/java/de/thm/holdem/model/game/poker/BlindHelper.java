@@ -86,7 +86,8 @@ public class BlindHelper {
             }
         }
 
-        return roundedValue;
+        // Ensure that the minimum small blind is 5
+        return Math.max(roundedValue, 5);
     }
 
     /**

@@ -12,7 +12,14 @@ public enum ClientOperation {
     CREATE("CREATE"),
     UPDATE("UPDATE"),
     DELETE("DELETE"),
-    NONE("NONE")
+    NONE("NONE"),
+
+    JOIN_PLAYER("JOIN"),
+    LEAVE_PLAYER("LEAVE"),
+
+    START_GAME("START"),
+
+    DEAL_HOLE_CARDS("DEAL"),
 
     ;
 

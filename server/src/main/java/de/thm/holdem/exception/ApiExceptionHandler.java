@@ -78,7 +78,7 @@ public class ApiExceptionHandler {
      */
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<Object> handleEntityNotFound(UserNotFoundException exception) {
+    public ResponseEntity<Object> handleUserNotFound(UserNotFoundException exception) {
         ApiError apiError =
                 new ApiError(
                         Timestamp.from(Instant.now()),
@@ -86,6 +86,36 @@ public class ApiExceptionHandler {
                         HttpStatus.NOT_FOUND.getReasonPhrase(),
                         exception.getMessage());
         return new ResponseEntity<>(apiError, HttpStatus.NOT_FOUND);
+    }
+
+    /**
+     * An exception handler if a requested entity is not found.
+     *
+     * @param exception the exception
+     * @return a response entity with the ApiException and the HTTP status code
+     */
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<Object> handleEntityNotFound(NotFoundException exception) {
+        ApiError apiError =
+                new ApiError(
+                        Timestamp.from(Instant.now()),
+                        HttpStatus.NOT_FOUND.value(),
+                        HttpStatus.NOT_FOUND.getReasonPhrase(),
+                        exception.getMessage());
+        return new ResponseEntity<>(apiError, HttpStatus.NOT_FOUND);
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(GameActionException.class)
+    public ResponseEntity<Object> handleInvalidGameAction(GameActionException exception) {
+        ApiError apiError =
+                new ApiError(
+                        Timestamp.from(Instant.now()),
+                        HttpStatus.BAD_REQUEST.value(),
+                        HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                        exception.getMessage());
+        return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
     }
 
 }

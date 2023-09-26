@@ -14,7 +14,7 @@ package de.thm.holdem.model.game.poker;
 public enum BettingRound {
 
 
-    PRE_FLOP(0), FLOP(1), TURN(2), RIVER(3), END(4);
+    NONE(0), PRE_FLOP(1), FLOP(2), TURN(3), RIVER(4), END(5);
 
     private final int order;
     BettingRound(int order) {
@@ -23,6 +23,10 @@ public enum BettingRound {
 
     public boolean isBefore(BettingRound targetRound) {
         return this.order < targetRound.order;
+    }
+
+    public boolean isAfter(BettingRound targetRound) {
+        return this.order > targetRound.order;
     }
 
 }

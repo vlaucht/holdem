@@ -31,7 +31,7 @@ public class WebsocketServiceImpl implements WebsocketService {
     @Override
     public <T> void sendPrivate(String userId, String channel, T payload) {
         if (!connectionRegistry.isConnected(userId)) {
-            throw new IllegalStateException("User is not connected");
+            return;
         }
         String sessionId = connectionRegistry.getConnection(userId);
         String destination = "/queue/" + channel;

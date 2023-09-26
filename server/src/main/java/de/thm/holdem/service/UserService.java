@@ -70,4 +70,6 @@ public interface UserService {
      * @return the updated {@link UserExtra}
      */
     UserExtra leaveGame(String id, BigInteger bankroll);
+
+    void notifyUserUpdate(UserExtra userExtra);
 }

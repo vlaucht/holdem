@@ -43,25 +43,25 @@ export const UserProvider: React.FC<{children: ReactNode}> = ({  children }) => 
         }
     };
 
-    const updateUserBankroll = (bankroll: number) => {
+    const updateUserBankroll = (userUpdate: UserExtra) => {
         setUser((prevUser) => {
-            const userCopy: UserExtra = { ...prevUser };
-            userCopy.bankroll = bankroll;
-            return userCopy;
+            return { ...prevUser, ...userUpdate };
         });
     }
+
 
     useEffect(() => {
         fetchData();
     }, []);
 
     useEffect(() => {
-        webSocketService.subscribe('/user/queue/bankroll', (message) => {
+        webSocketService.subscribe('/user/queue/user-extra', (message) => {
             updateUserBankroll(message);
         });
 
+
         return () => {
-            webSocketService.unsubscribe('/queue/bankroll');
+            webSocketService.unsubscribe('/queue/user-extra');
         };
     }, [webSocketService]);
 

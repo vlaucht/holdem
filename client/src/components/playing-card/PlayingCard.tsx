@@ -1,30 +1,29 @@
-import React from "react";
+import React, {forwardRef} from "react";
 import './PlayingCard.css';
+import {CardDto} from "../../models/CardDto";
 
 export interface PlayingCardProps {
-    suit?: string;
-    rank?: string;
-    color?: 'red' | 'black';
-    isFaceUp?: boolean;
+    card: CardDto;
     className?: string;
 }
 
-export const PlayingCard: React.FunctionComponent<PlayingCardProps> = ({suit, rank, color, isFaceUp, className}) => {
-    const cardClass = isFaceUp ? `card ${color}` : 'card card-back';
+export const PlayingCard = forwardRef<HTMLElement, PlayingCardProps>(
+    ({ card, className }, ref) => {
+    const cardClass = card.isFaceUp ? `card ${card.color}` : 'card card-back';
     return (
-        <div className={`${cardClass} ${className || ''}`}>
-            {isFaceUp ? (
+        <div ref={ref as React.RefObject<HTMLDivElement>} className={`${cardClass} ${className || ''}`}>
+            {card.isFaceUp ? (
                 <>
                     <div className="card-top">
-                        <span className="rank">{rank}</span>
-                        <span className="suit">{suit}</span>
+                        <span className="rank">{card.rank}</span>
+                        <span className="suit">{card.suit}</span>
                     </div>
                     <div className="card-center">
-                        <span className="suit">{suit}</span>
+                        <span className="suit">{card.suit}</span>
                     </div>
                     <div className="card-bottom">
-                        <span className="rank">{rank}</span>
-                        <span className="suit">{suit}</span>
+                        <span className="rank">{card.rank}</span>
+                        <span className="suit">{card.suit}</span>
                     </div>
                 </>
             ) : (
@@ -36,3 +35,4 @@ export const PlayingCard: React.FunctionComponent<PlayingCardProps> = ({suit, ra
 
     )
 }
+);

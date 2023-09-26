@@ -5,6 +5,8 @@ import de.thm.holdem.dto.PokerGameCreateRequest;
 import de.thm.holdem.dto.PokerGameStateDto;
 import de.thm.holdem.exception.GameActionException;
 import de.thm.holdem.exception.NotFoundException;
+import de.thm.holdem.model.game.Game;
+import de.thm.holdem.model.game.GameListener;
 import de.thm.holdem.model.game.poker.PokerGame;
 import de.thm.holdem.model.player.Player;
 import de.thm.holdem.model.player.PokerPlayer;
@@ -14,10 +16,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class PokerGameServiceImpl implements PokerGameService {
+public class PokerGameServiceImpl implements PokerGameService, GameListener {
 
     private final PokerGameSettings settings;
 
@@ -46,13 +49,14 @@ public class PokerGameServiceImpl implements PokerGameService {
         registry.addGame(game);
         userExtra.setActiveGameId(game.getId());
         userService.playGame(userExtra);
-        gameLobbyService.notifyBankrollChange(userExtra);
+        userService.notifyUserUpdate(userExtra);
         gameLobbyService.broadcast(game, ClientOperation.CREATE);
+        game.addListener(this);
         return game;
     }
 
 
-    public PokerGame joinGame(String gameId, String userId) throws NotFoundException, GameActionException {
+    public PokerGame joinGame(String gameId, String userId) throws Exception {
         PokerGame game = registry.getGame(gameId);
         if (game == null) {
             throw new NotFoundException("Game not found");
@@ -63,13 +67,28 @@ public class PokerGameServiceImpl implements PokerGameService {
         }
         PokerPlayer pokerPlayer = new PokerPlayer(userId, userExtra.getUsername(), userExtra.getAvatar(),
                 userExtra.getBankroll());
+        game.addPlayer(pokerPlayer);
         userExtra.setBankroll(pokerPlayer.joinGame(game.getBuyIn()));
         userExtra.setActiveGameId(game.getId());
         userService.playGame(userExtra);
-        gameLobbyService.notifyBankrollChange(userExtra);
+        userService.notifyUserUpdate(userExtra);
         gameLobbyService.broadcast(game, ClientOperation.UPDATE);
-        broadcastGameState(game);
+        broadcastGameState(game, ClientOperation.JOIN_PLAYER);
         return game;
+    }
+
+    @Override
+    public void startGame(String gameId, String playerId) throws Exception {
+        PokerGame game = registry.getGame(gameId);
+        if (game == null) {
+            throw new NotFoundException("Game not found");
+        }
+        if (!game.getCreator().equals(playerId)) {
+            throw new GameActionException("Only the owner can start the game.");
+        }
+        game.startGame();
+        gameLobbyService.broadcast(game, ClientOperation.UPDATE);
+        broadcastGameState(game, ClientOperation.START_GAME);
     }
 
     /** {@inheritDoc} */
@@ -91,13 +110,13 @@ public class PokerGameServiceImpl implements PokerGameService {
             gameLobbyService.broadcast(game, ClientOperation.DELETE);
         } else {
             gameLobbyService.broadcast(game, ClientOperation.UPDATE);
-            broadcastGameState(game);
+            broadcastGameState(game, ClientOperation.LEAVE_PLAYER);
         }
     }
 
     /** {@inheritDoc} */
-    public void broadcastGameState(PokerGame game) {
-        websocketService.broadcast("/topic/game/" + game.getId(), PokerGameStateDto.from(game));
+    public void broadcastGameState(PokerGame game, ClientOperation operation) {
+        websocketService.broadcast("/topic/game/" + game.getId(), PokerGameStateDto.from(game, operation));
     }
 
     public PokerGame getGame(String gameId) throws NotFoundException {
@@ -119,4 +138,18 @@ public class PokerGameServiceImpl implements PokerGameService {
         return playerExists;
     }
 
+    @Override
+    public <T> void onNotifyPlayers(List<Player> players, Game game, T payload) {
+
+    }
+
+    @Override
+    public <T> void onNotifyPlayer(Player player, Game game, T payload) {
+
+    }
+
+    @Override
+    public void onNotifyGameState(Game game, ClientOperation operation) {
+        broadcastGameState((PokerGame) game, operation);
+    }
 }

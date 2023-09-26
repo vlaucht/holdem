@@ -1,5 +1,6 @@
 package de.thm.holdem.service;
 
+import de.thm.holdem.dto.ClientOperation;
 import de.thm.holdem.dto.PokerGameCreateRequest;
 import de.thm.holdem.exception.GameActionException;
 import de.thm.holdem.exception.NotFoundException;
@@ -32,12 +33,14 @@ public interface PokerGameService {
      *
      * @param game the game to broadcast
      */
-    void broadcastGameState(PokerGame game);
+    void broadcastGameState(PokerGame game, ClientOperation operation);
 
     PokerGame getGame(String gameId) throws NotFoundException;
 
     boolean isPlayerInGame(PokerGame game, String playerId);
 
-    PokerGame joinGame(String gameId, String userId) throws NotFoundException, GameActionException;
+    PokerGame joinGame(String gameId, String userId) throws Exception;
+
+    void startGame(String gameId, String playerId) throws Exception;
 
 }

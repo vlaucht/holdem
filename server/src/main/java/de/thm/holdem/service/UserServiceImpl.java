@@ -26,6 +26,10 @@ public class UserServiceImpl implements UserService  {
 
     private final AvatarService avatarService;
 
+    private final PokerGameRegistry pokerGameRegistry;
+
+    private final WebsocketService websocketService;
+
     @Value("${player.initial-bankroll}")
     protected String initialBankroll;
 
@@ -45,7 +49,7 @@ public class UserServiceImpl implements UserService  {
     public UserExtra getUserExtra(String id, String username) {
         Optional<UserExtra> userExtra = userExtraRepository.findById(id);
         if (userExtra.isPresent()) {
-            // TODO check if player has active game, and if game does not exist anymore, set active game to null
+            checkUserActiveGame(userExtra.get());
             return userExtra.get();
         }
         UserExtra newUserExtra = new UserExtra(id, username);
@@ -53,6 +57,24 @@ public class UserServiceImpl implements UserService  {
         newUserExtra.setAvatar(avatar);
         newUserExtra.setBankroll(new BigInteger(initialBankroll));
         return userExtraRepository.save(newUserExtra);
+    }
+
+    /**
+     * Check if the user has active games and remove him from them if they do not exist anymore.
+     *
+     * <p>
+     *     This can only happen if the server gets shut down while the user is in a game.
+     * </p>
+     *
+     * @param userExtra the user to check
+     */
+    private void checkUserActiveGame(UserExtra userExtra) {
+        if (userExtra.getActiveGameId() != null) {
+            if (!pokerGameRegistry.containsGame(userExtra.getActiveGameId())) {
+                userExtra.setActiveGameId(null);
+                userExtraRepository.save(userExtra);
+            }
+        }
     }
 
     /** {@inheritDoc} */
@@ -87,6 +109,7 @@ public class UserServiceImpl implements UserService  {
     /** {@inheritDoc} */
     @Override
     public UserExtra playGame(UserExtra userExtra) {
+        notifyUserUpdate(userExtra);
         return userExtraRepository.save(userExtra);
     }
 
@@ -96,7 +119,12 @@ public class UserServiceImpl implements UserService  {
         UserExtra userExtra = getUserExtra(id);
         userExtra.setBankroll(bankroll);
         userExtra.setActiveGameId(null);
+        notifyUserUpdate(userExtra);
         return userExtraRepository.save(userExtra);
+    }
+
+    public void notifyUserUpdate(UserExtra userExtra) {
+        websocketService.sendPrivate(userExtra.getId(), "user-extra", userExtra);
     }
 
 }

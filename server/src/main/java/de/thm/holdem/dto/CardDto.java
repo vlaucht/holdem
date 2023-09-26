@@ -25,4 +25,10 @@ public class CardDto {
         }
         return cardDto;
     }
+
+    public static CardDto hidden() {
+        CardDto cardDto = new CardDto();
+        cardDto.setFaceUp(false);
+        return cardDto;
+    }
 }

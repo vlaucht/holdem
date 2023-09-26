@@ -48,9 +48,12 @@ public class PokerPlayer extends Player {
     }
 
     public boolean canDoAction(PokerPlayerAction allowedAction) {
-    	return this.allowedActions.contains(allowedAction);
+        return this.allowedActions.contains(allowedAction);
     }
 
+    public boolean hasHand() {
+        return hand.size() == 2;
+    }
 
     /**
      * Method to deal a card to the players hand.
@@ -80,6 +83,14 @@ public class PokerPlayer extends Player {
         lastAction = PokerPlayerAction.CALL;
         chips = chips.subtract(bet);
         currentBet = currentBet.add(bet);
+    }
+
+    public void clearAllowedActions() {
+        this.allowedActions.clear();
+    }
+
+    public void addAllowedAction(PokerPlayerAction action) {
+        this.allowedActions.add(action);
     }
 
     public void check() {

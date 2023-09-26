@@ -31,6 +31,21 @@ export const PokerGame: React.FunctionComponent = () => {
         }
     };
 
+    const startGame = async () => {
+        try {
+            await services.pokerService.startGame(id!);
+        } catch (error) {
+            // TODO error toast
+            console.error('Error starting game:', error);
+        }
+    }
+
+    const updateGameState = (gameState: PokerGameState) => {
+        setGameState((prevState) => {
+            return { ...prevState, ...gameState };
+        });
+    }
+
     const leaveGame = async () => {
         try {
             await services.pokerService.leave(id!);
@@ -40,6 +55,16 @@ export const PokerGame: React.FunctionComponent = () => {
             console.error('Error leaving game:', error);
         }
     }
+
+    useEffect(() => {
+        services.webSocketService.subscribe(`/topic/game/${id}`, (message) => {
+            updateGameState(message);
+        });
+
+        return () => {
+            services.webSocketService.unsubscribe(`/topic/game/${id}`);
+        };
+    }, [services.webSocketService]);
 
     useEffect(() => {
         fetchGameState();
@@ -59,7 +84,8 @@ export const PokerGame: React.FunctionComponent = () => {
                                 wrap="wrap"
                                 style={{ width: '100%' }}
                             >
-                                <Button size="sm" color="cyan">Start Game</Button>
+                                <Button disabled={!gameState || gameState && gameState.gameStatus !== 'Waiting for Players'}
+                                        onClick={startGame} size="sm" color="cyan">Start Game</Button>
                                 <Button onClick={open} size="sm" color="red">Leave Game</Button>
                             </Flex>
 
