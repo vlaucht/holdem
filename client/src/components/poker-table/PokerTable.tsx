@@ -6,7 +6,7 @@ import { Seat } from "../seat/Seat";
 import { useUser } from "../../hooks/user-provider/UserProvider";
 
 import "./PokerTable.css";
-import {animateBoardCardFly} from "./DealCard";
+import {animateBoardCardFly, animateSeatCardFly, toggleBoardCardVisibility, toggleHoleCardVisibility} from "./DealCard";
 
 interface GameTableProps {
     game: PokerGameState;
@@ -36,6 +36,16 @@ export const PokerTable: React.FunctionComponent<GameTableProps> = ({ game }) =>
         useRef(null), // For turn card
         useRef(null), // For river card
     ];
+
+    const deal = () => {
+        console.log(boardCardRefs)
+        toggleHoleCardVisibility(false);
+        toggleBoardCardVisibility(false);
+        animateSeatCardFly(game, seatElements, flyingCardRef, dealerIndex, 2, () => {
+            // Animation of seat cards is complete, now trigger animation of board cards
+            animateBoardCardFly(seatElements[dealerIndex]!, boardCardRefs, flyingCardRef);
+        });
+    }
 
     /** Reference to the animated card */
     const flyingCardRef = useRef<HTMLDivElement | null>(null);
@@ -71,11 +81,7 @@ export const PokerTable: React.FunctionComponent<GameTableProps> = ({ game }) =>
     });
 
     useEffect(() => {
-        console.log(boardCardRefs)
-        console.log(seatElements)
-        // toggleHoleCardVisibility();
-        animateBoardCardFly(seatElements[dealerIndex]!, boardCardRefs, flyingCardRef);
-        // animateSeatCardFly(game, seatElements, flyingCardRef, dealerIndex, 2);
+      deal();
     }, []);
 
 
@@ -87,14 +93,14 @@ export const PokerTable: React.FunctionComponent<GameTableProps> = ({ game }) =>
                         {showBoardCards && (
                             <>
                                 {game.flopCards.map((card, index) => (
-                                    <PlayingCard
+                                    <PlayingCard className={`board-card${index}`}
                                         key={index}
                                         card={card}
                                         ref={boardCardRefs[index]} // Use the appropriate ref for each flop card
                                     />
                                 ))}
-                                <PlayingCard key={"turnCard"} card={game.turnCard} ref={boardCardRefs[3]} />
-                                <PlayingCard key={"riverCard"} card={game.riverCard} ref={boardCardRefs[4]} />
+                                <PlayingCard className={`board-card3`} key={"turnCard"} card={game.turnCard} ref={boardCardRefs[3]} />
+                                <PlayingCard className={`board-card4`} key={"riverCard"} card={game.riverCard} ref={boardCardRefs[4]} />
                             </>
                         )}
                     </Group>
