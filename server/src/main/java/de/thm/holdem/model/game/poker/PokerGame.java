@@ -18,7 +18,7 @@ import lombok.Getter;
 import java.math.BigInteger;
 import java.util.*;
 
-
+// TODO convert BigInteger to long for memory and performance reasons
 @Getter
 public class PokerGame extends Game {
 
@@ -47,7 +47,6 @@ public class PokerGame extends Game {
     private int currentBlindLevel;
 
     /** A list of all small blind levels */
-    @Getter
     private List<BigInteger> smallBlindLevels;
 
     /** Stores the 3 flop cards (first 3 cards dealt on the table) */
@@ -82,11 +81,12 @@ public class PokerGame extends Game {
 
     protected ClassFactory<PokerHandEvaluator> evaluatorFactory;
 
+    /** The player who made the last raise, used to determine showdown order */
     private PokerPlayer lastBettor;
 
+    /** The number of active players (players that have not folded and still have chips) in the game */
     private int activePlayers;
 
-    @Getter
     private boolean publishPlayerPrivateInfo;
 
 
@@ -115,6 +115,12 @@ public class PokerGame extends Game {
         this.evaluatorFactory = new ClassFactory<>(PokerHandEvaluator.class);
     }
 
+    /**
+     * Method to get a player from the playerList by his id.
+     *
+     * @param playerId the id of the player.
+     * @return the player with the given id or null if no player with the given id exists.
+     */
     public Player getPlayerById(String playerId) {
         return playerList.stream().filter(s -> s.getId().equals(playerId)).findFirst().orElse(null);
     }
@@ -173,8 +179,9 @@ public class PokerGame extends Game {
      * Method to start the game
      *
      * <p>
-     *     The game will only be started if at least 3 players have joined the game and the game is not already running
-     *     A new deck will be created, the game will be set to running and dealer, small-blind and big-blind positions will be assigned
+     *     The game will only be started if at least 2 players have joined the game and the game is not already running.
+     *     A new deck will be created, the game will be set to running and a random player is chosen as dealer.
+     *     Then the blind levels will be calculated and the first round will be started.
      * </p>
      */
     public void startGame() throws Exception {
@@ -198,7 +205,8 @@ public class PokerGame extends Game {
     }
 
     /**
-     * Method to deal cards to the players of the game and set blinds
+     * Method to deal two cards to each player and let the small and big blind pay their blinds.
+     * The game will be set to PRE_FLOP.
      */
     public void deal() throws Exception {
         if (!gameStatus.equals(GameStatus.IN_PROGRESS)) {
@@ -226,6 +234,9 @@ public class PokerGame extends Game {
         notifyGameState(ClientOperation.DEAL);
     }
 
+    /**
+     * Method to pay the small blind.
+     */
     private void paySmallBlind() throws ReflectiveOperationException, GameActionException {
         rotateActor(false);
         smallBlindPlayer = actor;
@@ -235,6 +246,9 @@ public class PokerGame extends Game {
         currentBet = smallBlind;
     }
 
+    /**
+     * Method to pay the big blind.
+     */
     private void payBigBlind() throws ReflectiveOperationException, GameActionException {
         rotateActor(false);
         bigBlindPlayer = actor;
@@ -278,16 +292,24 @@ public class PokerGame extends Game {
 
 
     /**
-     * Method to increase the blind level
+     * Method to increase the blind level. This should be called after the
+     * blind timer has expired and before a new round starts.
+     *
+     * @throws GameActionException if the blinds are raised during a round.
      */
-    public void raiseBlinds() {
+    public void raiseBlinds() throws GameActionException {
+        if (bettingRound.isAfter(BettingRound.NONE) && bettingRound.isBefore(BettingRound.END)) {
+            throw new GameActionException("Blinds can not be raised during a round.");
+        }
         currentBlindLevel++;
     }
 
 
     /**
      * Method to set actor to the next player on the table. It will ignore all folded players or
-     * players who are all in
+     * players who are all in or spectators.
+     *
+     * @param getAllowedActions if true, the allowed actions for the new actor will be set.
      */
     void rotateActor(boolean getAllowedActions) throws ReflectiveOperationException, GameActionException {
         if(bettingRound == BettingRound.END) return;
@@ -302,6 +324,14 @@ public class PokerGame extends Game {
         }
     }
 
+    /**
+     * Method to set the allowed actions for the current actor.
+     *
+     * <p>
+     *     Allowed actions are determined by the current game state, so that the actor
+     *     can not perform any illegal actions. If the actor is all in, he will automatically check.
+     * </p>
+     */
     void setAllowedActions() throws ReflectiveOperationException, GameActionException {
         actor.clearAllowedActions();
         // actor will automatically check if he is all in
@@ -352,8 +382,22 @@ public class PokerGame extends Game {
      */
     public void setNextDealer(PokerPlayer currentDealer) {
         dealer = (PokerPlayer) TurnManager.getNext(playerList, currentDealer, true);
+        actor = dealer;
     }
 
+    /**
+     * Method to check whether it is illegal for a player to perform an action.
+     *
+     * <p>
+     *     The player is not allowed to perform an action if it is not his turn, if he is a spectator,
+     *     or if the action he is trying to perform is not in his list of allowed actions.
+     * </p>
+     *
+     * @param player the player who is trying to perform an action
+     * @param action the action the player is trying to perform
+     * @return true if the player is not allowed to perform the action, false otherwise.
+     * @throws GameActionException if the player is not allowed to perform the action.
+     */
     public boolean isIllegalAction(PokerPlayer player, PokerPlayerAction action) throws GameActionException {
         if(!isPlayerTurn(player)) {
             throw new GameActionException("It is not your turn.");
@@ -368,7 +412,11 @@ public class PokerGame extends Game {
     }
 
     /**
-     * Method to call a bet
+     * Method to perform a call action.
+     *
+     * <p>
+     *     The player will only be allowed to call if he has enough chips to match the current bet.
+     * </p>
      *
      * @param player the player who is calling
      */
@@ -390,11 +438,11 @@ public class PokerGame extends Game {
     }
 
     /**
-     * Method to manage the end of a round
+     * Method to manage the end of a round.
      *
      * <p>
-     *     if the round can end, the next round will be started,
-     *     else the next player will be set as active player
+     *     If the round can end, the next round will be started,
+     *     otherwise the next player will be set as active player.
      * </p>
      */
     void manageBettingRound() throws ReflectiveOperationException, GameActionException {
@@ -406,7 +454,11 @@ public class PokerGame extends Game {
     }
 
     /**
-     * Method to check a bet
+     * Method to perform a check action.
+     *
+     * <p>
+     *     The player will only be allowed to check if he has already matched the current bet.
+     * </p>
      *
      * @param player the player who is checking
      */
@@ -424,7 +476,12 @@ public class PokerGame extends Game {
     }
 
     /**
-     * Method to fold a hand
+     * Method to perform a fold action.
+     *
+     * <p>
+     *     If the player folds, the number of active players will be decreased by 1 as he is no longer
+     *     participating in the round.
+     * </p>
      *
      * @param player the player that wants to fold
      */
@@ -439,7 +496,11 @@ public class PokerGame extends Game {
     }
 
     /**
-     * Method to raise a bet
+     * Method to perform a raise action.
+     *
+     * <p>
+     *     The player will only be allowed to raise if he has enough chips to match the current bet plus the big blind.
+     * </p>
      *
      * @param player the player who is raising
      * @param raise the amount the player wants to raise
@@ -469,6 +530,11 @@ public class PokerGame extends Game {
         rotateActor(true);
     }
 
+    /**
+     * Method to perform an all-in action.
+     *
+     * @param player the player who is going all-in.
+     */
     public void allIn(PokerPlayer player) throws GameActionException, ReflectiveOperationException {
         if (isIllegalAction(player, PokerPlayerAction.ALL_IN)) {
             return;
@@ -484,6 +550,12 @@ public class PokerGame extends Game {
         rotateActor(true);
     }
 
+    /**
+     * Method to determine whether it is the players turn.
+     *
+     * @param player the player to check
+     * @return true if it is the players turn, false otherwise.
+     */
     private boolean isPlayerTurn(PokerPlayer player) {
         return player.equals(actor);
     }
@@ -492,8 +564,10 @@ public class PokerGame extends Game {
      * Method to check whether a round can end
      *
      * @return (true) if only 1 player has not folded -> round will be set to end;
-     * (true) if the round is PRE_FLOP, it is the big blinds turn, and all players have called the current bet or have folded
-     * (true) if the round is NOT PRE_FLOP, it is the dealers turn, and all players have called the current bet or have folded
+     * (true) if the round is PRE_FLOP, it is the big blinds turn, and all players have called the current bet or have folded,
+     * this is, because the big blind was the big blind is the last player to act in the pre-flop round;
+     * (true) if the round is NOT PRE_FLOP, it is the dealers turn, and all players have called the current bet or have folded,
+     * this is, because the dealer is the last player to act in the flop, turn and river round;
      */
     boolean canRoundEnd() {
         if (activePlayers == 1) {
@@ -510,6 +584,11 @@ public class PokerGame extends Game {
         return false;
     }
 
+    /**
+     * Method do count all players that have called the current bet and have not folded.
+     *
+     * @return the number of players that have called the current bet and have not folded.
+     */
     private int countPlayersThatCalledAndNotFolded() {
         return (int) playerList.stream()
                 .map(player -> (PokerPlayer) player)
@@ -520,7 +599,7 @@ public class PokerGame extends Game {
       * Method to prepare the game for a new round
       *
       * <p>
-      *      NOT a state change, but the whole playing round ended (the pot was won)
+      *      NOT a betting round change, but the whole playing round ended (the pot was won)
       * </p>
       */
     void prepareNextRound() {
@@ -545,7 +624,7 @@ public class PokerGame extends Game {
     }
 
     /**
-     * Method to start a new round
+     * Method to start a new betting round.
      *
      * <p>
      *     if current state is PRE_FLOP: state will be set to FLOP, 3 Flop cards will be dealt

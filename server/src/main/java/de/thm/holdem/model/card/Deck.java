@@ -17,7 +17,10 @@ public class Deck {
      */
     private final Stack<Card> deck;
 
-
+    /**
+     * Constructor to create a new deck.
+     * The deck is filled with all 52 card variations.
+     */
     public Deck() {
         deck = new Stack<>();
         /* Stream to go through all 4 suits */

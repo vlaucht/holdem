@@ -16,15 +16,34 @@ public enum BettingRound {
 
     NONE(0), PRE_FLOP(1), FLOP(2), TURN(3), RIVER(4), END(5);
 
+    /** The order of the betting round, used to make rounds comparable. */
     private final int order;
+
+    /**
+     * Constructor to create a new betting round.
+     *
+     * @param order the order of the betting round.
+     */
     BettingRound(int order) {
         this.order = order;
     }
 
+    /**
+     * Method to determine if the current betting round is before the target betting round.
+     *
+     * @param targetRound the target betting round.
+     * @return true if the current betting round is before the target betting round, false otherwise.
+     */
     public boolean isBefore(BettingRound targetRound) {
         return this.order < targetRound.order;
     }
 
+    /**
+     * Method to determine if the current betting round is after the target betting round.
+     *
+     * @param targetRound the target betting round.
+     * @return true if the current betting round is after the target betting round, false otherwise.
+     */
     public boolean isAfter(BettingRound targetRound) {
         return this.order > targetRound.order;
     }

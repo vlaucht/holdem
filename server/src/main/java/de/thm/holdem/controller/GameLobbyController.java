@@ -15,6 +15,12 @@ import java.util.List;
 
 import static de.thm.holdem.config.SwaggerConfig.BEARER_KEY_SECURITY_SCHEME;
 
+/**
+ * Rest controller for the game lobby.
+ *
+ * @author Valentin Laucht
+ * @version 1.0
+ */
 @RestController
 @RequestMapping("/api/lobby")
 @RequiredArgsConstructor
