@@ -61,7 +61,7 @@ export const UserProvider: React.FC<{children: ReactNode}> = ({  children }) => 
 
 
         return () => {
-            webSocketService.unsubscribe('/queue/user-extra');
+            webSocketService.unsubscribe('/user/queue/user-extra');
         };
     }, [webSocketService]);
 

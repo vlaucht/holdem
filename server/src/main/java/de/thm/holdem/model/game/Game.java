@@ -54,7 +54,7 @@ public abstract class Game {
         listeners.remove(listener);
     }
 
-    abstract protected void notifyPlayers();
+    abstract protected void notifyPlayers(ClientOperation operation);
 
     abstract protected void notifyPlayer(Player player);
 

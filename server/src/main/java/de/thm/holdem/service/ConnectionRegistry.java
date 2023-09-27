@@ -57,4 +57,14 @@ public class ConnectionRegistry {
     public boolean isConnected(String userId) {
         return connections.containsKey(userId);
     }
+
+    /**
+     * Gets the userId associated with a session id.
+     *
+     * @param sessionId the session id
+     * @return the userId or null if not found
+     */
+    public String getUserIdBySessionId(String sessionId) {
+        return connections.inverse().get(sessionId);
+    }
 }

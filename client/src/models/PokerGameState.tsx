@@ -10,4 +10,7 @@ export interface PokerGameState {
     operation: string;
     gameStatus: string;
     players: PokerPlayerDto[];
+    bettingRound: string;
+    maxPlayers: number;
+    bigBlind: number;
 }

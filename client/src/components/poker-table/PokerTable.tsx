@@ -1,30 +1,39 @@
-import React, { useEffect, useRef } from "react";
-import { PokerGameState } from "../../models/PokerGameState";
-import { PlayingCard } from "../playing-card/PlayingCard";
-import { Group } from "@mantine/core";
-import { Seat } from "../seat/Seat";
-import { useUser } from "../../hooks/user-provider/UserProvider";
+import React, {useEffect, useRef} from "react";
+import {PokerGameState} from "../../models/PokerGameState";
+import {PlayingCard} from "../playing-card/PlayingCard";
+import {Group} from "@mantine/core";
+import {Seat} from "../seat/Seat";
+import {useUser} from "../../hooks/user-provider/UserProvider";
 
 import "./PokerTable.css";
 import {animateBoardCardFly, animateSeatCardFly, toggleBoardCardVisibility, toggleHoleCardVisibility} from "./DealCard";
+import {PokerPlayerDto} from "../../models/PokerPlayerDto";
 
 interface GameTableProps {
     game: PokerGameState;
+    player: PokerPlayerDto | null;
 }
 
-export const PokerTable: React.FunctionComponent<GameTableProps> = ({ game }) => {
+export const PokerTable: React.FunctionComponent<GameTableProps> = ({ game, player }) => {
 
     /** Used so that it doesn't crash when players are waiting and no cards are dealt yet */
     const showBoardCards = game.flopCards && game.flopCards.length > 0 && game.turnCard && game.riverCard;
-
     /** The current user */
     const user = useUser().user;
 
+    /** Set the private info of the current user */
+    const setPrivateInfo = (userIndex: number) => {
+        if (userIndex !== -1 && player) {
+            game.players = game.players.map((element, index) => (index === userIndex ? player : element));
+        }
+    }
+
     /** The index of the current user in the player list. */
     const userIndex = game.players.findIndex((player) => player.name === user.username);
+    setPrivateInfo(userIndex);
 
     /** The index of the dealer in the player list. Used to determine the origin of the dealing card animation. */
-    const dealerIndex = game.players.findIndex((player) => player.dealer);
+    const dealerIndex = game.players.findIndex((player) => player.isDealer);
 
     /** Hold references of each seat, so it can be mapped to a player */
     const seatElements: (HTMLElement | null)[] = [];
@@ -36,6 +45,8 @@ export const PokerTable: React.FunctionComponent<GameTableProps> = ({ game }) =>
         useRef(null), // For turn card
         useRef(null), // For river card
     ];
+
+
 
     const deal = () => {
         toggleHoleCardVisibility(false);
@@ -71,17 +82,19 @@ export const PokerTable: React.FunctionComponent<GameTableProps> = ({ game }) =>
             <div
                 className={`seat-${seatNumber}`}
                 key={`seat-${player.name}`}
-                id={player.dealer ? "dealer-seat" : undefined}
+                id={player.isDealer ? "dealer-seat" : undefined}
                 ref={setSeatRef}
             >
-                <Seat player={player} cards={player.cards} />
+                <Seat player={player} cards={player.cards} game={game}/>
             </div>
         );
     });
 
     useEffect(() => {
-     // deal();
-    }, []);
+        if (game.operation === "DEAL") {
+           deal();
+        }
+    }, [game]);
 
 
     return (

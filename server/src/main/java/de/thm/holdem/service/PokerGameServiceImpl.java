@@ -1,13 +1,12 @@
 package de.thm.holdem.service;
 
-import de.thm.holdem.dto.ClientOperation;
-import de.thm.holdem.dto.PokerGameCreateRequest;
-import de.thm.holdem.dto.PokerGameStateDto;
+import de.thm.holdem.dto.*;
 import de.thm.holdem.exception.GameActionException;
 import de.thm.holdem.exception.NotFoundException;
 import de.thm.holdem.model.game.Game;
 import de.thm.holdem.model.game.GameListener;
 import de.thm.holdem.model.game.poker.PokerGame;
+import de.thm.holdem.model.game.poker.PokerPlayerAction;
 import de.thm.holdem.model.player.Player;
 import de.thm.holdem.model.player.PokerPlayer;
 import de.thm.holdem.model.user.UserExtra;
@@ -16,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -33,7 +33,9 @@ public class PokerGameServiceImpl implements PokerGameService, GameListener {
     private final WebsocketService websocketService;
 
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     public PokerGame createGame(String playerId, PokerGameCreateRequest request) throws Exception {
         UserExtra userExtra = userService.getUserExtra(playerId);
 
@@ -53,6 +55,47 @@ public class PokerGameServiceImpl implements PokerGameService, GameListener {
         gameLobbyService.broadcast(game, ClientOperation.CREATE);
         game.addListener(this);
         return game;
+    }
+
+    public PokerGameStateDto mergePrivateInfo(PokerGame game, String playerId) {
+        PokerPlayer player = (PokerPlayer) game.getPlayerById(playerId);
+        int playerIndex = game.getPlayerList().indexOf(player);
+        PokerGameStateDto gameStateDto = PokerGameStateDto.from(game);
+        PokerPlayerStateDto privateInfo = PokerPlayerStateDto.from(player, game, true);
+        if (playerIndex != -1) {
+            List<PokerPlayerStateDto> players = new ArrayList<>(gameStateDto.getPlayers());
+            players.set(playerIndex, privateInfo);
+            gameStateDto.setPlayers(players);
+        }
+        return gameStateDto;
+    }
+
+    public void performAction(GameActionRequest request, String playerId) {
+        String action = request.getAction();
+        PokerPlayerAction pokerAction = PokerPlayerAction.fromString(action);
+        // Get the game
+        if (pokerAction != null) {
+            try {
+                PokerGame game = registry.getGame(request.getGameId());
+                PokerPlayer player = (PokerPlayer) game.getPlayerById(playerId);
+                if (player == null) {
+                    throw new NotFoundException("Player not found");
+                }
+                switch (pokerAction) {
+                    case FOLD -> game.fold(player);
+                    case CHECK -> game.check(player);
+                    case CALL -> game.call(player);
+                    case RAISE -> game.raise(player, BigInteger.valueOf(request.getAmount()));
+                    case ALL_IN -> game.allIn(player);
+                    default -> {
+                    }
+                }
+            } catch (Exception e) {
+                // Handle GameActionException
+            }
+        } else {
+            // Handle unexpected action
+        }
     }
 
 
@@ -89,10 +132,12 @@ public class PokerGameServiceImpl implements PokerGameService, GameListener {
         }
         game.startGame();
         gameLobbyService.broadcast(game, ClientOperation.UPDATE);
-        broadcastGameState(game, ClientOperation.START_GAME);
+        // broadcastGameState(game, ClientOperation.START_GAME);
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     public void leaveGame(String gameID, String playerId) throws NotFoundException {
         PokerGame game = registry.getGame(gameID);
         Player player = game.getPlayerById(playerId);
@@ -115,10 +160,6 @@ public class PokerGameServiceImpl implements PokerGameService, GameListener {
         }
     }
 
-    /** {@inheritDoc} */
-    public void broadcastGameState(PokerGame game, ClientOperation operation) {
-        websocketService.broadcast("/topic/game/" + game.getId(), PokerGameStateDto.from(game, operation));
-    }
 
     public PokerGame getGame(String gameId) throws NotFoundException {
         if (!registry.containsGame(gameId)) {
@@ -140,8 +181,10 @@ public class PokerGameServiceImpl implements PokerGameService, GameListener {
     }
 
     @Override
-    public <T> void onNotifyPlayers(List<Player> players, Game game, T payload) {
-
+    public void onNotifyPlayers(Game game, ClientOperation operation) {
+        for (Player player : game.getPlayerList()) {
+            sendPrivateInfo((PokerPlayer) player, (PokerGame) game, game.getId());
+        }
     }
 
     @Override
@@ -152,5 +195,16 @@ public class PokerGameServiceImpl implements PokerGameService, GameListener {
     @Override
     public void onNotifyGameState(Game game, ClientOperation operation) {
         broadcastGameState((PokerGame) game, operation);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void broadcastGameState(PokerGame game, ClientOperation operation) {
+        websocketService.broadcast("/topic/game/" + game.getId(), PokerGameStateDto.from(game, operation));
+    }
+
+    public void sendPrivateInfo(PokerPlayer player, PokerGame game, String gameId) {
+        websocketService.sendPrivate(player.getId(), gameId + "/private-info", PokerPlayerStateDto.from(player, game, true));
     }
 }

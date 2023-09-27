@@ -7,10 +7,47 @@
     top: 0
 }
 
+.action-bar {
+    position: absolute;
+    bottom: 0;
+    display: flex;
+    width: 500%;
+    height: 1%;
+}
+
+.active-border {
+
+    border-radius: 12px;
+    padding: 5px;
+    box-sizing: border-box;
+    width: 100%;
+    position: absolute;
+    height: 55% ;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    bottom: 0;
+
+}
+
+.glow {
+    border: 3px solid #00ff00;
+    animation: glow 1s ease-in-out infinite alternate;
+}
+
+/** Glowing animation for active player */
+@keyframes glow {
+    0% {
+        box-shadow: 0 0 5px #00ff00; /* Start with a small glow */
+    }
+    100% {
+        box-shadow: 0 0 20px #00ff00; /* Increase the glow at 100% */
+    }
+}
 .user-info {
     width: 100%;
-    height: 35%;
-    bottom: 20%;
+    height: 60%;
+    bottom: 40%;
     background: linear-gradient(to right, #393939, #585858);
     font-size: 1vw;
     color: white;
@@ -22,26 +59,9 @@
     padding-left: 60px;
 }
 
-.avatar {
-    width: 45%; /* Set width to 100% */
-    padding-bottom: 45%; /* Maintain 1:1 aspect ratio */
-    border-radius: 50%;
-    margin-left: -55px;
-    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-.info {
-    text-align: left; /* Align text to the left */
-    padding-left: 10px; /* Add some spacing between avatar and text */
-}
-
-.player-name {
-    font-weight: bold;
-}
-
 .action {
     width: 100%;
-    height: 20%;
+    height: 40%;
     position: absolute;
     border-radius: 0 0 8px 8px;
     background-color: #FFD700;
@@ -55,14 +75,33 @@
     bottom: 0;
 }
 
+.avatar {
+    width: 45%;
+    padding-bottom: 45%;
+    border-radius: 50%;
+    margin-left: -55px;
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.info {
+    text-align: left;
+    padding-left: 10px;
+}
+
+.player-name {
+    font-weight: bold;
+}
+
+
+
 
 .hole-cards {
     width:100%;
     height:50%;
     position: absolute;
     top: 0;
-    display: flex; /* Add display flex */
-    justify-content: center; /* Horizontally center child elements */
+    display: flex;
+    justify-content: center;
     align-items: center;
 }
 

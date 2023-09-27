@@ -17,9 +17,9 @@ export interface PokerPlayerDto {
     bet: number;
     potShare: number;
     lastAction: PokerPlayerAction;
-    dealer: boolean;
-    bigBlind: boolean;
-    smallBlind: boolean;
+    isDealer: boolean;
+    isBigBlind: boolean;
+    isSmallBlind: boolean;
     isActor: boolean;
     allowedActions: PokerPlayerAction[];
     mustShowCards: boolean;

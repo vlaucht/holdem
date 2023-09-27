@@ -6,6 +6,7 @@ import de.thm.holdem.model.player.PokerPlayer;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigInteger;
 import java.util.List;
 
 @Data
@@ -28,17 +29,26 @@ public class PokerGameStateDto {
 
     private List<PokerPlayerStateDto> players;
 
+    private String bettingRound;
+
+    private int maxPlayers;
+
+    private int bigBlind;
+
 
     public static PokerGameStateDto from(PokerGame game, ClientOperation operation) {
         PokerGameStateDto dto = new PokerGameStateDto();
         dto.setId(game.getId());
+        dto.setMaxPlayers(game.getMaxPlayerCount());
         dto.setName(game.getName());
         dto.setGameStatus(game.getGameStatus().getPrettyName());
         dto.setOperation(operation);
         dto.setPlayers(game.getPlayerList().stream().map(player ->
                 PokerPlayerStateDto.from((PokerPlayer) player, game, false)).toList());
+        dto.setBettingRound(game.getBettingRound().toString());
 
         if (game.getBettingRound().isAfter(BettingRound.NONE)) {
+            dto.setBigBlind(game.getSmallBlindLevels().get(game.getCurrentBlindLevel()).multiply(BigInteger.TWO).intValue());
             dto.setTurnCard(game.getTurnCard() != null ? CardDto.from(game.getTurnCard(), true) : CardDto.hidden());
             dto.setRiverCard(game.getRiverCard() != null ? CardDto.from(game.getRiverCard(), true) : CardDto.hidden());
             if (game.getFlopCards() == null || game.getFlopCards().size() == 0) {

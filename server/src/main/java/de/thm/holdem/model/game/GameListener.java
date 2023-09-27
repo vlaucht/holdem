@@ -10,12 +10,9 @@ public interface GameListener {
     /**
      * Notify all players about a change in the players public information.
      *
-     * @param players the players to notify
      * @param game the game the players are in
-     * @param payload the payload to send to the players
-     * @param <T> the type of the payload
      */
-    <T> void onNotifyPlayers(List<Player> players, Game game, T payload);
+    void onNotifyPlayers(Game game, ClientOperation operation);
 
     /**
      * Notify a single player about a change in his private information.

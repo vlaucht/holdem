@@ -1,5 +1,6 @@
 package de.thm.holdem.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import de.thm.holdem.model.game.poker.PokerGame;
 import de.thm.holdem.model.game.poker.PokerPlayerAction;
 import de.thm.holdem.model.player.PokerPlayer;
@@ -24,12 +25,16 @@ public class PokerPlayerStateDto {
 
     private String lastAction;
 
+    @JsonProperty("isDealer")
     private boolean isDealer;
 
+    @JsonProperty("isSmallBlind")
     private boolean isSmallBlind;
 
+    @JsonProperty("isBigBlind")
     private boolean isBigBlind;
 
+    @JsonProperty("isActor")
     private boolean isActor;
 
     private List<String> allowedActions;

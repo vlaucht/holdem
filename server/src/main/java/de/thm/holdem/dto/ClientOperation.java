@@ -19,7 +19,7 @@ public enum ClientOperation {
 
     START_GAME("START"),
 
-    DEAL_HOLE_CARDS("DEAL"),
+    DEAL("DEAL"),
 
     ;
 

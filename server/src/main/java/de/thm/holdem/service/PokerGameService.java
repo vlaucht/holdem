@@ -1,7 +1,9 @@
 package de.thm.holdem.service;
 
 import de.thm.holdem.dto.ClientOperation;
+import de.thm.holdem.dto.GameActionRequest;
 import de.thm.holdem.dto.PokerGameCreateRequest;
+import de.thm.holdem.dto.PokerGameStateDto;
 import de.thm.holdem.exception.GameActionException;
 import de.thm.holdem.exception.NotFoundException;
 import de.thm.holdem.model.game.poker.PokerGame;
@@ -43,4 +45,7 @@ public interface PokerGameService {
 
     void startGame(String gameId, String playerId) throws Exception;
 
+    PokerGameStateDto mergePrivateInfo(PokerGame game, String playerId);
+
+    void performAction(GameActionRequest request, String playerId);
 }

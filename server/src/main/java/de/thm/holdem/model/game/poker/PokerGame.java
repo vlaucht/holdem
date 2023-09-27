@@ -47,7 +47,8 @@ public class PokerGame extends Game {
     private int currentBlindLevel;
 
     /** A list of all small blind levels */
-    protected List<BigInteger> smallBlindLevels;
+    @Getter
+    private List<BigInteger> smallBlindLevels;
 
     /** Stores the 3 flop cards (first 3 cards dealt on the table) */
     protected List<Card> flopCards;
@@ -125,8 +126,10 @@ public class PokerGame extends Game {
     }
 
     @Override
-    public void notifyPlayers() {
-       // TODO
+    public void notifyPlayers(ClientOperation operation) {
+       for (GameListener listener : listeners) {
+           listener.onNotifyPlayers(this, operation);
+       }
     }
 
     @Override
@@ -191,6 +194,7 @@ public class PokerGame extends Game {
                 buyIn, settings.getTotalTournamentTime(), settings.getTimeToRaiseBlinds());
         currentBlindLevel = 0;
         currentBet = BigInteger.ZERO;
+        deal();
     }
 
     /**
@@ -218,15 +222,15 @@ public class PokerGame extends Game {
 
         paySmallBlind();
         payBigBlind();
+        notifyPlayers(ClientOperation.DEAL);
+        notifyGameState(ClientOperation.DEAL);
     }
 
     private void paySmallBlind() throws ReflectiveOperationException, GameActionException {
         rotateActor(false);
         smallBlindPlayer = actor;
         BigInteger smallBlind = smallBlindLevels.get(currentBlindLevel);
-        System.out.println(smallBlind);
         smallBlindPlayer.paySmallBlind(smallBlind);
-        System.out.println(smallBlindPlayer.getCurrentBet());
         contributePot(smallBlind);
         currentBet = smallBlind;
     }
@@ -238,6 +242,7 @@ public class PokerGame extends Game {
         bigBlindPlayer.payBigBlind(bigBlind);
         contributePot(bigBlind);
         currentBet = bigBlind;
+        rotateActor(true);
     }
 
     private void contributePot(BigInteger amount) {

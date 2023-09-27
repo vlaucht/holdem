@@ -19,4 +19,14 @@ public enum PokerPlayerAction {
     public String getStringValue() {
         return stringValue;
     }
+
+    public static PokerPlayerAction fromString(String action) {
+        for (PokerPlayerAction value : PokerPlayerAction.values()) {
+            if (value.stringValue.equalsIgnoreCase(action)) {
+                return value;
+            }
+        }
+        return null;
+    }
+
 }

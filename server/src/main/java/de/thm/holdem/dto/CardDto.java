@@ -1,5 +1,6 @@
 package de.thm.holdem.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import de.thm.holdem.model.card.Card;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,6 +12,7 @@ public class CardDto {
     private String suit;
     private String rank;
     private String color;
+    @JsonProperty("isFaceUp")
     private boolean isFaceUp;
 
     public static CardDto from(Card card, boolean isFaceUp) {

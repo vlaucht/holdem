@@ -10,20 +10,21 @@ export interface PlayingCardProps {
 export const PlayingCard = forwardRef<HTMLElement, PlayingCardProps>(
     ({ card, className }, ref) => {
     const cardClass = card.isFaceUp ? `card ${card.color}` : 'card card-back';
+    const suitSymbol = { __html: card.suit };
     return (
         <div ref={ref as React.RefObject<HTMLDivElement>} className={`${cardClass} ${className || ''}`}>
             {card.isFaceUp ? (
                 <>
                     <div className="card-top">
                         <span className="rank">{card.rank}</span>
-                        <span className="suit">{card.suit}</span>
+                        <span className="suit" dangerouslySetInnerHTML={suitSymbol}></span>
                     </div>
                     <div className="card-center">
-                        <span className="suit">{card.suit}</span>
+                        <span className="suit" dangerouslySetInnerHTML={suitSymbol}></span>
                     </div>
                     <div className="card-bottom">
                         <span className="rank">{card.rank}</span>
-                        <span className="suit">{card.suit}</span>
+                        <span className="suit" dangerouslySetInnerHTML={suitSymbol}></span>
                     </div>
                 </>
             ) : (

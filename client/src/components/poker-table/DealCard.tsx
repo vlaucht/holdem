@@ -1,7 +1,4 @@
-
-
 // TODO - Refactor this file: there is a lot of duplicate code that needs to be cleaned up
-
 
 /**
  * This function animates the dealing of the hole cards to each player.
