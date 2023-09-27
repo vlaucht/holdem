@@ -1,5 +1,6 @@
 import Axios, { AxiosError } from "axios";
 import {ApiError} from "../../models/ApiError";
+import {displayErrorFormat} from "../ToastService";
 
 /**
  * Interface to format an error from an API Request
@@ -40,6 +41,7 @@ export class ApiController {
                 .then((res) => {
                     resolve(JSON.parse(JSON.stringify(res.data)) as T)
                 }).catch((err: AxiosError) => {
+                    displayErrorFormat(this.formatError(err));
                 reject(this.formatError(err))
             });
         });
@@ -56,6 +58,7 @@ export class ApiController {
             Axios.delete(`${this.apiUrl}/${URL}`, {params: params})
                 .then(() => resolve())
                 .catch((err: AxiosError) => {
+                    displayErrorFormat(this.formatError(err));
                     reject(this.formatError(err));
                 });
         });
@@ -74,6 +77,7 @@ export class ApiController {
                 .then((res) => {
                     resolve(JSON.parse(JSON.stringify(res.data)) as T)
                 }).catch((err: AxiosError) => {
+                displayErrorFormat(this.formatError(err));
                 reject(this.formatError(err))
             });
         });
@@ -85,10 +89,10 @@ export class ApiController {
      * @param error the error to format
      */
     formatError(error: AxiosError): ErrorFormat {
-        const title: string = 'Etwas ist schiefgelaufen.';
+        const title: string = 'Something went wrong.';
         let message;
         if (error.code === "ERR_NETWORK") {
-            message = "Service ist nicht erreichbar."
+            message = "Service not available."
             return {title, message, error: message};
         }
         const apiError: ApiError = error.response?.data as ApiError;

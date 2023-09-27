@@ -21,6 +21,8 @@ public enum ClientOperation {
 
     DEAL("DEAL"),
 
+    PLAYER_ACTION("PLAYER_ACTION"),
+
     ;
 
     /** The operation that should be performed on the client side. */

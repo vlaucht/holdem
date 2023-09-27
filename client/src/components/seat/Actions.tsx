@@ -24,22 +24,25 @@ export const Actions: React.FunctionComponent<ActionProps> = ({ player, game }) 
     const [opened, setOpened] = useState(false);
     const services = useServices();
 
-    const raise = () => {
-        if (opened) {
-            services.webSocketService.sendMessage('/app/poker-action', {gameId: game.id, action: 'raise', amount: raiseValue});
+    const performAction = (action: string) => {
+        console.log("performing action: " + action)
+        if (action == 'raise' && opened) {
+            services.webSocketService.sendMessage('/app/poker-action', {gameId: game.id, action: action, amount: raiseValue});
+        } else if(action != 'raise') {
+            services.webSocketService.sendMessage('/app/poker-action', {gameId: game.id, action: action});
         }
     }
 
     // to maintain order
     if (player.isActor && player.allowedActions && player.allowedActions.length > 0) {
         if (player.allowedActions.includes("fold")) {
-            actionButtons.push(<Button key={"fold"} size="sm" color="red">{actionButtonText["fold"]}</Button>)
+            actionButtons.push(<Button onClick={() => performAction('fold')} key={"fold"} size="sm" color="red">{actionButtonText["fold"]}</Button>)
         }
         if (player.allowedActions.includes("check")) {
-            actionButtons.push(<Button key={"check"} size="sm" color="cyan">{actionButtonText["check"]}</Button>)
+            actionButtons.push(<Button onClick={() => performAction('check')} key={"check"} size="sm" color="cyan">{actionButtonText["check"]}</Button>)
         }
         if (player.allowedActions.includes("call")) {
-            actionButtons.push(<Button key={"call"} size="sm" color="cyan">{actionButtonText["call"]}</Button>)
+            actionButtons.push(<Button onClick={() => performAction('call')} key={"call"} size="sm" color="cyan">{actionButtonText["call"]}</Button>)
         }
         if (player.allowedActions.includes("raise")) {
             // Calculate the maximum value for the slider
@@ -47,7 +50,7 @@ export const Actions: React.FunctionComponent<ActionProps> = ({ player, game }) 
             const el = (
                 <Popover opened={opened} onChange={() => {setOpened((o) => !o);}} key={"raise-popup"} width={250} position="top" withArrow shadow="md" >
                     <Popover.Target>
-                        <Button onClick={() => {setOpened((o) => !o); raise()}} data-action-button="raise" size="sm" color="cyan">{actionButtonText["raise"]}</Button>
+                        <Button onClick={() => {setOpened((o) => !o); performAction('raise')}} data-action-button="raise" size="sm" color="cyan">{actionButtonText["raise"]}</Button>
                     </Popover.Target>
                     <Popover.Dropdown>
                         <Slider
@@ -63,7 +66,7 @@ export const Actions: React.FunctionComponent<ActionProps> = ({ player, game }) 
             actionButtons.push(el)
         }
         if (player.allowedActions.includes("allIn")) {
-            actionButtons.push(<Button key={"allIn"} size="sm" color="cyan">{actionButtonText["allIn"]}</Button>)
+            actionButtons.push(<Button onClick={() => performAction('allIn')} key={"allIn"} size="sm" color="cyan">{actionButtonText["allIn"]}</Button>)
         }
     }
     return (

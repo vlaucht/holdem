@@ -3,12 +3,17 @@ package de.thm.holdem.controller;
 import de.thm.holdem.dto.GameActionRequest;
 import de.thm.holdem.dto.PokerGameCreateRequest;
 import de.thm.holdem.dto.PokerGameStateDto;
+import de.thm.holdem.exception.ApiError;
 import de.thm.holdem.model.game.poker.PokerGame;
 import de.thm.holdem.service.ConnectionRegistry;
 import de.thm.holdem.service.PokerGameService;
+import de.thm.holdem.service.WebsocketService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Valid;
+import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -24,8 +29,11 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import static de.thm.holdem.config.SwaggerConfig.BEARER_KEY_SECURITY_SCHEME;
 
@@ -36,6 +44,8 @@ public class PokerGameController {
 
     private final PokerGameService pokerGameService;
     private final ConnectionRegistry connectionRegistry;
+    private final WebsocketService websocketService;
+    private final Validator validator;
 
     @Value("${api.base-url}")
     private String baseUrl;
@@ -87,25 +97,35 @@ public class PokerGameController {
     }
 
     @MessageMapping("/poker-action")
-    public void sendMessage(@Payload @Valid GameActionRequest request, SimpMessageHeaderAccessor accessor) {
+    public void pokerAction(@Payload GameActionRequest request, SimpMessageHeaderAccessor accessor) {
+        Set<ConstraintViolation<GameActionRequest>> violations = validator.validate(request);
         String sessionId = accessor.getSessionId();
         String playerId = connectionRegistry.getUserIdBySessionId(sessionId);
+        if (!violations.isEmpty()) {
+            ApiError apiError = getApiError(violations);
+            websocketService.sendPrivateToSession(sessionId, "errors", apiError);
+            return;
+        }
         pokerGameService.performAction(request, playerId);
     }
 
-    @MessageExceptionHandler(MethodArgumentNotValidException.class)
-    public void handleValidationException(MethodArgumentNotValidException ex, SimpMessageHeaderAccessor headerAccessor) {
-        // Extract the validation errors
+    private ApiError getApiError(Set<ConstraintViolation<GameActionRequest>> violations) {
         Map<String, String> map = new HashMap<>();
-        ex.getBindingResult()
-                .getFieldErrors()
-                .forEach(fieldError -> map.put(fieldError.getField(), fieldError.getDefaultMessage()));
-        System.out.println(map.values().toString());
-        // TODO send error message
-        // Send the error response back to the client
-        /*SimpMessagingTemplate messagingTemplate = new SimpMessagingTemplate(clientInboundChannel, clientOutboundChannel);
-        messagingTemplate.convertAndSendToUser(headerAccessor.getUser().getName(), "/queue/errors", errorResponse);*/
+        for (ConstraintViolation<GameActionRequest> violation : violations) {
+            String propertyPath = violation.getPropertyPath().toString();
+            String message = violation.getMessage();
+            map.put(propertyPath, message);
+        }
+        return new ApiError(
+                Timestamp.from(Instant.now()),
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                map.values().toString());
     }
+
+
+
+
 
 
 }

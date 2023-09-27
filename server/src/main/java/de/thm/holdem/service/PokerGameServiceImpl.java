@@ -1,6 +1,7 @@
 package de.thm.holdem.service;
 
 import de.thm.holdem.dto.*;
+import de.thm.holdem.exception.ApiError;
 import de.thm.holdem.exception.GameActionException;
 import de.thm.holdem.exception.NotFoundException;
 import de.thm.holdem.model.game.Game;
@@ -12,9 +13,12 @@ import de.thm.holdem.model.player.PokerPlayer;
 import de.thm.holdem.model.user.UserExtra;
 import de.thm.holdem.settings.PokerGameSettings;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -73,7 +77,7 @@ public class PokerGameServiceImpl implements PokerGameService, GameListener {
     public void performAction(GameActionRequest request, String playerId) {
         String action = request.getAction();
         PokerPlayerAction pokerAction = PokerPlayerAction.fromString(action);
-        // Get the game
+
         if (pokerAction != null) {
             try {
                 PokerGame game = registry.getGame(request.getGameId());
@@ -90,12 +94,34 @@ public class PokerGameServiceImpl implements PokerGameService, GameListener {
                     default -> {
                     }
                 }
+                broadcastGameState(game, ClientOperation.PLAYER_ACTION);
+                onNotifyPlayers(game, ClientOperation.PLAYER_ACTION);
             } catch (Exception e) {
-                // Handle GameActionException
+                sendErrorMessage(playerId, getApiError(e));
             }
         } else {
-            // Handle unexpected action
+            sendErrorMessage(playerId, getApiError("Invalid action"));
         }
+    }
+
+    private ApiError getApiError(Exception exception) {
+        return new ApiError(
+                Timestamp.from(Instant.now()),
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                exception.getMessage());
+    }
+
+    private ApiError getApiError(String message) {
+        return new ApiError(
+                Timestamp.from(Instant.now()),
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                message);
+    }
+
+    public void sendErrorMessage(String playerId, ApiError error) {
+        websocketService.sendPrivate(playerId, "/queue/errors", error);
     }
 
 
@@ -132,7 +158,6 @@ public class PokerGameServiceImpl implements PokerGameService, GameListener {
         }
         game.startGame();
         gameLobbyService.broadcast(game, ClientOperation.UPDATE);
-        // broadcastGameState(game, ClientOperation.START_GAME);
     }
 
     /**
@@ -207,4 +232,6 @@ public class PokerGameServiceImpl implements PokerGameService, GameListener {
     public void sendPrivateInfo(PokerPlayer player, PokerGame game, String gameId) {
         websocketService.sendPrivate(player.getId(), gameId + "/private-info", PokerPlayerStateDto.from(player, game, true));
     }
+
+
 }

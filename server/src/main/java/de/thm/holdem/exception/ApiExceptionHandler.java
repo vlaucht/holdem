@@ -2,6 +2,8 @@ package de.thm.holdem.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -20,6 +22,7 @@ import java.util.Map;
  */
 @RestControllerAdvice
 public class ApiExceptionHandler {
+
 
     /**
      * An exception handler if validation fails.
@@ -117,5 +120,6 @@ public class ApiExceptionHandler {
                         exception.getMessage());
         return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
     }
+
 
 }

@@ -1,12 +1,15 @@
 import Stomp from 'stompjs';
 import SockJS from 'sockjs-client';
 import {useKeycloak} from "@react-keycloak/web";
+import {ApiError} from "../../models/ApiError";
+import {displayError, displayLocalError} from "../ToastService";
 
 class WebSocketService {
 
     private stompClient: Stomp.Client | null = null;
 
     private subscriptions: { [channel: string]: Stomp.Subscription } = {};
+    private errorChannelSubscription: Stomp.Subscription | null = null;
     private keyCloak = useKeycloak()
     private readonly token: string;
     private isConnected: boolean = false;
@@ -35,6 +38,7 @@ class WebSocketService {
             'Authorization': 'Bearer ' + this.token,
         }
         this.stompClient.connect(headers, () => {
+            this.subscribeToErrorChannel();
             this.emit('connected');
             console.log('Connected to WebSocket');
             this.isConnected = true;
@@ -44,6 +48,7 @@ class WebSocketService {
 
     disconnect() {
         if (this.stompClient) {
+            this.unsubscribeFromErrorChannel();
             this.stompClient.disconnect( () => {
                 this.emit('disconnected');
                 console.log('Disconnected from WebSocket');
@@ -54,7 +59,7 @@ class WebSocketService {
 
     subscribe(channel: string, callback: (arg0: any) => void) {
         if (!this.stompClient) {
-            // TODO: throw error
+            displayLocalError('Error connecting to WebSocket');
             return;
         }
         this.subscriptions[channel] = this.stompClient.subscribe(channel, (message) => {
@@ -69,9 +74,29 @@ class WebSocketService {
         }
     }
 
+    subscribeToErrorChannel() {
+        if (!this.stompClient) {
+            displayLocalError('Error connecting to WebSocket');
+            return;
+        }
+
+        const errorChannel = '/user/queue/errors';
+        this.errorChannelSubscription = this.stompClient.subscribe(errorChannel, (message) => {
+            displayError(JSON.parse(message.body));
+        });
+    }
+
+    unsubscribeFromErrorChannel() {
+        if (this.errorChannelSubscription) {
+            this.errorChannelSubscription.unsubscribe();
+            this.errorChannelSubscription = null;
+        }
+    }
+
+
     sendMessage(channel: string, message: any) {
         if (!this.stompClient) {
-            // TODO: throw error
+            displayLocalError('Error connecting to WebSocket');
             return;
         }
         this.stompClient.send(channel, {}, JSON.stringify(message));

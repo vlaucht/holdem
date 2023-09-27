@@ -8,6 +8,7 @@ import WebSocketService from "../../services/websocket-service/WebsocketService"
 import {ContentLoader} from "../../components/loader/ContentLoader";
 import useWebSocketStatus from "../../hooks/useWebsocketStatus";
 import {BrowserRouter} from "react-router-dom";
+import {Notifications} from "@mantine/notifications";
 
 const AuthenticatedTemplate = () => {
     const {keycloak} = useKeycloak();
@@ -27,6 +28,7 @@ const AuthenticatedTemplate = () => {
             (
                 isConnected ? (
                     <BrowserRouter>
+                        <Notifications />
                         <UserProvider>
                             <Shell/>
                         </UserProvider>

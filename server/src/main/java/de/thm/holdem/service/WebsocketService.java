@@ -26,4 +26,6 @@ public interface WebsocketService {
      * @param <T> The type of the payload.
      */
     <T> void sendPrivate(String userId, String channel, T payload);
+
+    <T> void sendPrivateToSession(String sessionId, String channel, T payload);
 }

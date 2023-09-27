@@ -307,7 +307,7 @@ public class PokerGame extends Game {
         // actor will automatically check if he is all in
         if (actor.getLastAction().equals(PokerPlayerAction.ALL_IN)) {
             check(actor);
-            // TODO notify players
+            notifyPlayers(ClientOperation.PLAYER_ACTION);
             return;
         }
 
