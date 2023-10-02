@@ -9,7 +9,6 @@ import de.thm.holdem.model.game.GameListener;
 import de.thm.holdem.model.game.GameStatus;
 import de.thm.holdem.model.player.Player;
 import de.thm.holdem.model.player.PokerPlayer;
-import de.thm.holdem.utils.PokerHandEvaluator;
 import de.thm.holdem.settings.PokerGameSettings;
 import de.thm.holdem.utils.ClassFactory;
 import de.thm.holdem.utils.TurnManager;
