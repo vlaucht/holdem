@@ -12,9 +12,7 @@ import java.util.*;
  */
 public class Deck {
 
-    /**
-     * A Stack used to store the collection of cards in the deck
-     */
+    /** A Stack used to store the collection of cards in the deck */
     private final Stack<Card> deck;
 
     /**

@@ -12,10 +12,10 @@ import de.thm.holdem.exception.ApiRequestException;
  */
 public enum TableType {
 
-    /** Fixed-Limit Texas Hold'em. */
+    /** Fixed-Limit Texas Hold'em. Only 3 raises are allowed per betting round. */
     FIXED_LIMIT("Fixed-Limit", "FL"),
 
-    /** No-Limit Texas Hold'em. */
+    /** No-Limit Texas Hold'em. Unlimited raises are allowed. */
     NO_LIMIT("No-Limit", "NL"),
 
     ;
@@ -27,6 +27,12 @@ public enum TableType {
     private final String stringRepresentation;
 
 
+    /**
+     * Constructor to create a table type.
+     *
+     * @param name the name of the table type to be shown to the client.
+     * @param stringRepresentation the string representation of the table type used for requests.
+     */
     TableType(String name, String stringRepresentation) {
         this.prettyName = name;
         this.stringRepresentation = stringRepresentation;

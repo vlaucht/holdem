@@ -672,8 +672,6 @@ public class PokerGame extends Game {
         }
     }
 
-
-
     private BigInteger getTotalPot() {
         BigInteger totalPot = BigInteger.ZERO;
         for (Pot pot : pots) {
