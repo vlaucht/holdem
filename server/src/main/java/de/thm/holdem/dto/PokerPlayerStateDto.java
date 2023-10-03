@@ -15,7 +15,7 @@ public class PokerPlayerStateDto {
 
     private String avatar;
 
-    private List<CardDto> cards;
+    private List<CardDto> holeCards;
 
     private int chips;
 
@@ -41,6 +41,8 @@ public class PokerPlayerStateDto {
 
     private boolean mustShowCards;
 
+    private PokerHandResultDto handResult;
+
     public static PokerPlayerStateDto from(PokerPlayer player, PokerGame game, boolean isPrivate) {
         PokerPlayerStateDto dto = new PokerPlayerStateDto();
         dto.setName(player.getAlias());
@@ -56,11 +58,12 @@ public class PokerPlayerStateDto {
 
         if (isPrivate) {
             dto.setAllowedActions(player.getAllowedActions().stream().map(PokerPlayerAction::getStringValue).toList());
-            dto.setMustShowCards(player.isMustShowCards());
+            dto.setMustShowCards(player.mustShowCards());
+            dto.setHandResult(PokerHandResultDto.from(player, true));
         }
 
         if (player.hasHoleCards()) {
-            dto.setCards(List.of(CardDto.from(player.getHoleCards().get(0), isPrivate), CardDto.from(player.getHoleCards().get(1), isPrivate)));
+            dto.setHoleCards(List.of(CardDto.from(player.getHoleCards().get(0), isPrivate), CardDto.from(player.getHoleCards().get(1), isPrivate)));
         }
 
         return dto;

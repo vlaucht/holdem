@@ -13,4 +13,5 @@ export interface PokerGameState {
     bettingRound: string;
     maxPlayers: number;
     bigBlind: number;
+    pots: number[];
 }

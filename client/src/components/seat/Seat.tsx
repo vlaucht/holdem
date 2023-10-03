@@ -20,11 +20,11 @@ const actionText = {
 
 interface SeatProps {
     player: PokerPlayerDto;
-    cards: CardDto[];
+    holeCards: CardDto[];
     game: PokerGameState;
 }
 
-export const Seat: React.FunctionComponent<SeatProps> = ({ player, cards, game }) => {
+export const Seat: React.FunctionComponent<SeatProps> = ({ player, holeCards, game }) => {
     const buttons = [];
     const user = useUser().user;
     if (player.isDealer) {
@@ -52,13 +52,13 @@ export const Seat: React.FunctionComponent<SeatProps> = ({ player, cards, game }
                 </div>
 
                 <div key={"hole-cards"} className="hole-cards">
-                    {cards &&  cards.map((card, index) => (
+                    {holeCards &&  holeCards.map((card, index) => (
                         <PlayingCard key={index} card={card} className={`hole-card${index+1}`}/>
                     ))}
                 </div>
                 <div className={player.isActor ? "active-border glow" : "active-border"}>
                 <div className="user-info">
-                    <img src={player.avatar} className="avatar"></img>
+                    <img alt={"Avatar"} src={player.avatar} className="avatar"></img>
                     <div className="info">
                         <div className="player-name">{player.name}</div>
                         <div className="chips">${player.chips}</div>

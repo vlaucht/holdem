@@ -15,14 +15,24 @@ public enum GameStatus {
 
     ;
 
-    /** A string representation of the game status */
+    /** A string representation of the game status to be shown to the client. */
     @JsonValue
     private final String prettyName;
 
+    /**
+     * Constructor to create a game status.
+     *
+     * @param prettyName the string representation of the game status to be shown to the client.
+     */
     GameStatus(String prettyName) {
         this.prettyName = prettyName;
     }
 
+    /**
+     * Method to get the string representation of the game status to be shown to the client.
+     *
+     * @return the string representation of the game status.
+     */
     public String getPrettyName() {
         return this.prettyName;
     }

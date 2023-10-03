@@ -3,8 +3,6 @@ package de.thm.holdem.model.game;
 import de.thm.holdem.dto.ClientOperation;
 import de.thm.holdem.model.player.Player;
 
-import java.util.List;
-
 public interface GameListener {
 
     /**

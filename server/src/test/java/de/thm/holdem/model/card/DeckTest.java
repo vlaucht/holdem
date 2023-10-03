@@ -27,7 +27,7 @@ class DeckTest {
         Deck originalDeck = new Deck();
         List<Card> originalCards = new ArrayList<>(originalDeck.getDeck());
 
-        deck.shuffleDeck();
+        deck.shuffle();
 
         assertNotEquals(originalCards, deck.getDeck());
     }

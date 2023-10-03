@@ -2,7 +2,6 @@ package de.thm.holdem.model.player;
 
 import de.thm.holdem.exception.GameActionException;
 import lombok.Getter;
-import lombok.Setter;
 
 import java.math.BigInteger;
 import java.util.Objects;
@@ -16,18 +15,32 @@ import java.util.Objects;
 @Getter
 public abstract class Player {
 
+    /** The id of the player. */
     protected final String id;
 
+    /** The nickname of the player. */
     protected final String alias;
 
+    /** The avatar of the player. */
     protected final String avatar;
 
+    /** The bankroll of the player. */
     protected BigInteger bankroll;
 
+    /** The amount of chips the player can play with in the current game. */
     protected BigInteger chips;
 
+    /** The amount of chips the player has bet in the current round. */
     protected BigInteger currentBet;
 
+    /**
+     * Constructor to create a player.
+     *
+     * @param id the id of the player.
+     * @param alias the nickname of the player.
+     * @param avatar the avatar of the player.
+     * @param bankroll the bankroll of the player.
+     */
     Player(String id, String alias, String avatar, BigInteger bankroll) {
         this.id = id;
         this.alias = alias;
@@ -43,7 +56,7 @@ public abstract class Player {
      *
      * @param amount the amount of chips to add
      */
-    private void addToBankroll(BigInteger amount) {
+    void addToBankroll(BigInteger amount) {
         bankroll = bankroll.add(amount);
     }
 
@@ -119,16 +132,22 @@ public abstract class Player {
      * @param amount the amount of chips to bet
      */
     public void bet(BigInteger amount) throws GameActionException {
-        if (amount.compareTo(BigInteger.ZERO) == 0) {
-            throw new GameActionException("Bet amount cannot be negative");
+        if (amount.compareTo(BigInteger.ZERO) <= 0) {
+            throw new GameActionException("Bet amount has to be greater than 0.");
         }
         if (amount.compareTo(chips) > 0) {
-            throw new GameActionException("Not enough chips to bet");
+            throw new GameActionException("Not enough chips to bet.");
         }
         chips = chips.subtract(amount);
         currentBet = currentBet.add(amount);
     }
 
+    /**
+     * Method to compare two players.
+     *
+     * @param obj the player to compare to.
+     * @return true if the unique id of the players are equal, false otherwise.
+     */
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
@@ -137,13 +156,13 @@ public abstract class Player {
         return Objects.equals(this.id, player.id);
     }
 
+    /**
+     * Method to get the hash code of the player.
+     *
+     * @return the hash code of the player.
+     */
     @Override
     public int hashCode() {
         return Objects.hash(this.id);
-    }
-
-    @Override
-    public String toString() {
-        return this.alias;
     }
 }

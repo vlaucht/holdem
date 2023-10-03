@@ -784,20 +784,17 @@ public class PokerGame extends Game {
         int bestHandValue = -1;
         for (PokerPlayer playerToShow : showingPlayers) {
             if (playerToShow.isAllIn()) {
-                playerToShow.setMustShowCards(true);
+                playerToShow.mustShowCards(true);
             }
             // players other than all-in players only have to show when having a chance to win
             if (bestHandValue <= playerToShow.getHandScore()) {
                 bestHandValue = playerToShow.getHandScore();
-                playerToShow.setMustShowCards(true);
+                playerToShow.mustShowCards(true);
             }
         }
 
         calculateWinning(showingPlayers);
 
     }
-
-
-
 
 }

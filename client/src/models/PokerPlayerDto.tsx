@@ -12,7 +12,8 @@ export type PokerPlayerAction =
 export interface PokerPlayerDto {
     name: string;
     avatar: string;
-    cards: CardDto[];
+    holeCards: CardDto[];
+    handResult: {handType: string, handCards: CardDto[]};
     chips: number;
     bet: number;
     potShare: number;

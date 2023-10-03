@@ -4,13 +4,11 @@ import de.thm.holdem.model.game.poker.BettingRound;
 import de.thm.holdem.model.game.poker.PokerGame;
 import de.thm.holdem.model.player.PokerPlayer;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.math.BigInteger;
 import java.util.List;
 
 @Data
-@NoArgsConstructor
 public class PokerGameStateDto {
 
     private String id;
@@ -35,6 +33,8 @@ public class PokerGameStateDto {
 
     private int bigBlind;
 
+    private List<Integer> pots;
+
 
     public static PokerGameStateDto from(PokerGame game, ClientOperation operation) {
         PokerGameStateDto dto = new PokerGameStateDto();
@@ -46,6 +46,7 @@ public class PokerGameStateDto {
         dto.setPlayers(game.getPlayerList().stream().map(player ->
                 PokerPlayerStateDto.from((PokerPlayer) player, game, false)).toList());
         dto.setBettingRound(game.getBettingRound().toString());
+        dto.setPots(game.getPots().stream().map(pot -> pot.getBet().intValue()).toList());
 
         if (game.getBettingRound().isAfter(BettingRound.NONE)) {
             dto.setBigBlind(game.getSmallBlindLevels().get(game.getCurrentBlindLevel()).multiply(BigInteger.TWO).intValue());

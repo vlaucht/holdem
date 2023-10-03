@@ -85,7 +85,7 @@ export const PokerTable: React.FunctionComponent<GameTableProps> = ({ game, play
                 id={player.isDealer ? "dealer-seat" : undefined}
                 ref={setSeatRef}
             >
-                <Seat player={player} cards={player.cards} game={game}/>
+                <Seat player={player} holeCards={player.holeCards} game={game}/>
             </div>
         );
     });
