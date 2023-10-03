@@ -1,6 +1,9 @@
 import {Box, Button, Group, Modal, Space, Text} from "@mantine/core";
 import React from "react";
 
+/**
+ * Properties for the ActionModal component.
+ */
 interface ActionModalProps {
     opened: boolean;
     close: () => void;
@@ -8,6 +11,16 @@ interface ActionModalProps {
     title: string;
     message: string;
 }
+
+/**
+ * Component to render a modal with a message and a cancel and an optional confirm button.
+ *
+ * @param opened indicates if the modal is opened.
+ * @param close function to close the modal.
+ * @param onConfirm function to execute when the confirm button is clicked.
+ * @param title title of the modal.
+ * @param message message to display in the modal.
+ */
 export const ActionModal: React.FunctionComponent<ActionModalProps> = ({opened, close, onConfirm, title, message}) => {
 
     return (
