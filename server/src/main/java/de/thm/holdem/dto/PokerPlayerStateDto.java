@@ -59,8 +59,8 @@ public class PokerPlayerStateDto {
             dto.setMustShowCards(player.isMustShowCards());
         }
 
-        if (player.hasHand()) {
-            dto.setCards(List.of(CardDto.from(player.getHand().get(0), isPrivate), CardDto.from(player.getHand().get(1), isPrivate)));
+        if (player.hasHoleCards()) {
+            dto.setCards(List.of(CardDto.from(player.getHoleCards().get(0), isPrivate), CardDto.from(player.getHoleCards().get(1), isPrivate)));
         }
 
         return dto;

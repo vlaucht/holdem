@@ -2,6 +2,7 @@ package de.thm.holdem.model.player;
 
 import de.thm.holdem.exception.GameActionException;
 import de.thm.holdem.model.card.Card;
+import de.thm.holdem.model.game.poker.PokerHand;
 import de.thm.holdem.model.game.poker.PokerPlayerAction;
 import lombok.Getter;
 import lombok.Setter;
@@ -14,12 +15,9 @@ import java.util.List;
 @Getter
 public class PokerPlayer extends Player {
 
-    /** The score of the players hand */
-    private int handScore;
-
     /** The cards the player has on his hand */
     @Setter
-    protected List<Card> hand;
+    protected List<Card> holeCards;
 
     /** The last action performed by the player */
     protected PokerPlayerAction lastAction;
@@ -37,22 +35,24 @@ public class PokerPlayer extends Player {
     @Setter
     private BigInteger potShare;
 
+    private final PokerHand hand;
+
 
     public PokerPlayer(String id, String alias, String avatar, BigInteger bankroll) {
         super(id, alias, avatar, bankroll);
-        this.handScore = 0;
-        this.hand = new ArrayList<>(2);
+        this.holeCards = new ArrayList<>(2);
         this.isFolded = false;
         this.allowedActions = new ArrayList<>();
         this.potShare = BigInteger.ZERO;
+        this.hand = new PokerHand();
     }
 
     public boolean canDoAction(PokerPlayerAction allowedAction) {
         return this.allowedActions.contains(allowedAction);
     }
 
-    public boolean hasHand() {
-        return hand.size() == 2;
+    public boolean hasHoleCards() {
+        return holeCards.size() == 2;
     }
 
     /**
@@ -61,10 +61,17 @@ public class PokerPlayer extends Player {
      * @param card the card to be dealt
      */
     public void dealCard(Card card) throws GameActionException {
-        if (this.hand.size() >= 2) {
+        if (this.holeCards.size() >= 2) {
             throw new GameActionException("Player already has two cards.");
         }
-        this.hand.add(card);
+        this.holeCards.add(card);
+    }
+
+    public int getHandScore() {
+        if (hand.getHandResult() == null || isFolded || isSpectator()) {
+            return 0;
+        }
+        return hand.getHandResult().getHandValue();
     }
 
     public void payBigBlind(BigInteger bigBlind) {
@@ -103,12 +110,12 @@ public class PokerPlayer extends Player {
 
     /** Indicates if the player is not participating anymore but still in the game (e.g. no cash left) */
     public boolean isSpectator() {
-        return hand.size() == 0 && chips.equals(BigInteger.ZERO);
+        return holeCards.size() == 0 && chips.equals(BigInteger.ZERO);
     }
 
 
     public boolean isAllIn() {
-        return hand.size() > 0 && chips.equals(BigInteger.ZERO);
+        return holeCards.size() > 0 && chips.equals(BigInteger.ZERO);
     }
 
     /**
@@ -131,16 +138,11 @@ public class PokerPlayer extends Player {
         super.reset();
         this.isFolded = false;
         this.lastAction = null;
-        this.handScore = 0;
-        this.hand.clear();
+        this.holeCards.clear();
         this.allowedActions.clear();
         this.mustShowCards = false;
         this.potShare = BigInteger.ZERO;
-    }
-
-
-    public void setHandScore(int score) {
-        this.handScore = score;
+        this.hand.reset();
     }
 
 }

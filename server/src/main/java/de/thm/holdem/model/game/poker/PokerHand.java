@@ -17,26 +17,57 @@ public class PokerHand {
     private List<Card> cards;
 
     /** The result of the hand evaluation. */
-    private final PokerHandResult handResult;
+    private PokerHandResult handResult;
 
     /**
      * Constructor to create a new PokerHand.
+     */
+    public PokerHand() {
+        reset();
+    }
+
+    /**
+     * Method to reset the hand.
+     */
+    public void reset() {
+        this.cards = new ArrayList<>();
+        handResult = null;
+    }
+
+    /**
+     * Method to add one card to the hand.
+     *
      * <p>
-     *     If the list of cards contains more than 5 cards, the best 5-card-combination is chosen.
-     *     Constructor uses the {@link #evaluateHand(List)} method to evaluate the hand.
+     *     If the total amount of cards in the hand is more than 5 cards, the best 5-card-combination is chosen.
+     *     The {@link #evaluateHand(List)} is used method to evaluate the hand.
      *     The result of the hand evaluation is stored in the {@link #handResult} field.
      *     The {@link #cards} field is updated with the cards that make up the best 5-card-combination.
      * </p>
-     *
-     * @param allCards a list of all up to 7 cards that are available to the hand.
+     * @param card the card to add to the hand.
      */
-    public PokerHand(List<Card> allCards) {
-        if (allCards.size() <= 5) {
-            this.cards = allCards;
-            this.handResult = evaluateHand(allCards);
+    public void addCard(Card card) {
+        addCards(Collections.singletonList(card));
+    }
+
+    /**
+     * Method to add a list of cards to the hand.
+     *
+     * <p>
+     *     If the total amount of cards in the hand is more than 5 cards, the best 5-card-combination is chosen.
+     *     The {@link #evaluateHand(List)} is used method to evaluate the hand.
+     *     The result of the hand evaluation is stored in the {@link #handResult} field.
+     *     The {@link #cards} field is updated with the cards that make up the best 5-card-combination.
+     * </p>
+     * @param newCards the cards to add to the hand.
+     */
+    public void addCards(List<Card> newCards) {
+        this.cards.addAll(newCards);
+
+        if (this.cards.size() <= 5) {
+            this.handResult = evaluateHand(this.cards);
         } else {
             // ArrayList which will store all 21 5-Card-Combinations out of 7 cards
-            ArrayList<ArrayList<Card>> allCardCombinations = find5CardsCombinations(new ArrayList<>(allCards));
+            ArrayList<ArrayList<Card>> allCardCombinations = find5CardsCombinations(new ArrayList<>(this.cards));
 
             PokerHandResult bestHandResult = null;
 

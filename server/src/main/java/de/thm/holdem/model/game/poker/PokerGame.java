@@ -10,7 +10,6 @@ import de.thm.holdem.model.game.GameStatus;
 import de.thm.holdem.model.player.Player;
 import de.thm.holdem.model.player.PokerPlayer;
 import de.thm.holdem.settings.PokerGameSettings;
-import de.thm.holdem.utils.ClassFactory;
 import de.thm.holdem.utils.TurnManager;
 import lombok.Getter;
 
@@ -78,8 +77,6 @@ public class PokerGame extends Game {
     /** The player who is currently making an action */
     protected PokerPlayer actor;
 
-    protected ClassFactory<PokerHandEvaluator> evaluatorFactory;
-
     /** The player who made the last raise, used to determine showdown order */
     private PokerPlayer lastBettor;
 
@@ -111,7 +108,6 @@ public class PokerGame extends Game {
         this.playerList.add(creator);
         this.deck = new Deck();
         this.publishPlayerPrivateInfo = false;
-        this.evaluatorFactory = new ClassFactory<>(PokerHandEvaluator.class);
     }
 
     /**
@@ -221,6 +217,7 @@ public class PokerGame extends Game {
               if (!pokerPlayer.isSpectator()) {
                   pokerPlayer.dealCard(deck.drawCard());
                   pokerPlayer.dealCard(deck.drawCard());
+                  pokerPlayer.getHand().addCards(pokerPlayer.getHoleCards());
               }
             } catch (GameActionException e) {
                 throw new RuntimeException(e);
@@ -570,9 +567,6 @@ public class PokerGame extends Game {
      */
     boolean canRoundEnd() {
         if (activePlayers == 1) {
-            playerList.stream()
-                    .map(player -> (PokerPlayer) player)
-                    .filter(player -> !player.isFolded() && !player.isSpectator()).findFirst().get().setHandScore(1000);
             bettingRound = BettingRound.END;
             return true;
         } else if (bettingRound == BettingRound.PRE_FLOP && actor == bigBlindPlayer) {
@@ -641,6 +635,7 @@ public class PokerGame extends Game {
                 flopCards.add(deck.drawCard());
                 flopCards.add(deck.drawCard());
                 flopCards.add(deck.drawCard());
+                addCardsToHands(flopCards);
                 actor = dealer;
                 rotateActor(true);
             }
@@ -648,6 +643,7 @@ public class PokerGame extends Game {
                 bettingRound = BettingRound.TURN;
                 deck.burnCard();
                 turnCard = deck.drawCard();
+                addCardsToHands(List.of(turnCard));
                 actor = dealer;
                 rotateActor(true);
             }
@@ -655,9 +651,9 @@ public class PokerGame extends Game {
                 bettingRound = BettingRound.RIVER;
                 deck.burnCard();
                 riverCard = deck.drawCard();
+                addCardsToHands(List.of(riverCard));
                 actor = dealer;
                 rotateActor(true);
-
             }
             case RIVER -> {
                 bettingRound = BettingRound.END;
@@ -665,6 +661,18 @@ public class PokerGame extends Game {
             }
         }
     }
+
+    private void addCardsToHands(List<Card> cards) {
+        for (Player player : playerList) {
+            PokerPlayer pokerPlayer = (PokerPlayer) player;
+            if (pokerPlayer.isFolded() || pokerPlayer.isSpectator()) {
+                continue;
+            }
+            pokerPlayer.getHand().addCards(cards);
+        }
+    }
+
+
 
     private BigInteger getTotalPot() {
         BigInteger totalPot = BigInteger.ZERO;
@@ -775,7 +783,6 @@ public class PokerGame extends Game {
         List<PokerPlayer> showingPlayers = determineShowdownOrder();
         int bestHandValue = -1;
         for (PokerPlayer playerToShow : showingPlayers) {
-            evaluateHand(playerToShow);
             if (playerToShow.isAllIn()) {
                 playerToShow.setMustShowCards(true);
             }
@@ -790,27 +797,6 @@ public class PokerGame extends Game {
 
     }
 
-    /**
-     * Method to evaluate hands of all players. Will return if the state is not END
-     *
-     * <p>
-     *     for each player that has not folded, the HandEvaluator will be called with the 2 Hand cards,
-     *     the 3 flop cards, the river card and the turn card.
-     *     The Score of each players hand will be assigned to the player
-     * </p>
-     */
-    public void evaluateHand(PokerPlayer player) throws ReflectiveOperationException {
-        PokerHandEvaluator handEvaluator = evaluatorFactory.createInstance(
-                player.getHand().get(0),
-                player.getHand().get(1),
-                flopCards.get(0),
-                flopCards.get(1),
-                flopCards.get(2),
-                riverCard,
-                turnCard);
-
-        player.setHandScore(handEvaluator.bestHand());
-    }
 
 
 
