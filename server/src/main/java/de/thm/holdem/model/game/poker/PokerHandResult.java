@@ -3,7 +3,9 @@ package de.thm.holdem.model.game.poker;
 import de.thm.holdem.model.card.Card;
 import lombok.Getter;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -36,7 +38,7 @@ public class PokerHandResult implements Comparable<PokerHandResult> {
      * @param calculationCards the up to 5 cards that are used to calculate the hand (e.g. 2 hole cards + 3 community cards).
      * @param handCards the cards that make up the hand (e.g. the 4 cards that form a Four-Of-A-Kind).
      */
-    public PokerHandResult(PokerHandType handType, List<Card> calculationCards, List<Card> handCards) {
+    public PokerHandResult(PokerHandType handType, ArrayList<Card> calculationCards, ArrayList<Card> handCards) {
         this.handType = handType;
         this.calculationCards = calculationCards;
         this.handCards = handCards;
@@ -56,8 +58,11 @@ public class PokerHandResult implements Comparable<PokerHandResult> {
             case ONE_PAIR -> calculateOnePairValue();
             case TWO_PAIRS -> calculateTwoPairsValue();
             case THREE_OF_A_KIND -> calculateThreeOfAKindValue();
+            case FOUR_OF_A_KIND -> calculateFourOfAKindValue();
+            // highest card in flush wins, in case of tie, the second-highest card wins, etc. So method for high card can be used
+            case FLUSH -> handType.getBaseValue() + calculateHighCardValue();
             // for the following hand types, the value is the base value + the value of the highest card
-            case STRAIGHT, FOUR_OF_A_KIND, FLUSH, STRAIGHT_FLUSH -> handType.getBaseValue() + calculationCards.get(0).rank().getValue();
+            case STRAIGHT, STRAIGHT_FLUSH -> handType.getBaseValue() + calculationCards.get(0).rank().getValue();
             case FULL_HOUSE -> calculateFullHouseValue();
             case ROYAL_FLUSH -> handType.getBaseValue();
             default -> 0;
@@ -96,27 +101,53 @@ public class PokerHandResult implements Comparable<PokerHandResult> {
     /**
      * Method to calculate the value of a THREE_OF_A_KIND
      *
-     * @return THREE_OF_A_KIND (3000000) + IF xxxyz -> 3* value(x) + order(y) + order(z) ELSE 3* order(z) + order(y) + order(x)
+     * @return THREE_OF_A_KIND (3000000) + XXXYZ | YXXXZ | YZXXX -> 14^2* value(x) + 14 * value(y) + value(z)
      */
     private int calculateThreeOfAKindValue() {
-        int value = handType.getBaseValue() + 3* handCards.get(0).rank().getValue();
-        for (Card card : calculationCards) {
-            if (!handCards.contains(card)) { // Avoid counting the three of a kind cards again
-                value += card.rank().getValue();
-            }
+        int value = handType.getBaseValue() + (int) (Math.pow(14, 2) * handCards.get(0).rank().getValue());
+
+        List<Card> filteredCards = calculationCards.stream().filter(card -> !handCards.contains(card)).toList();
+        for (int i = 0; i < filteredCards.size(); i++) {
+            value += filteredCards.get(i).rank().getValue() * Math.pow(14, 1 - i);
         }
+
+        return value;
+    }
+
+    /**
+     * Method to calculate the value of a FOUR_OF_A_KIND
+     *
+     * @return FOUR_OF_A_KIND (7000000) + XXXXY | YXXXX -> 14* value(x) + value(y)
+     */
+    private int calculateFourOfAKindValue() {
+        int value = handType.getBaseValue() + 14 * handCards.get(0).rank().getValue();
+
+        List<Card> filteredCards = calculationCards.stream().filter(card -> !handCards.contains(card)).toList();
+        if (filteredCards.size() == 1) {
+            value += filteredCards.get(0).rank().getValue();
+        }
+
         return value;
     }
 
     /**
      * Method to calculate the value of a FULL_HOUSE
      *
-     * @return FULL_HOUSE (6000000) + IF xxyyy -> 2* value(x) + 3* value(y) ELSE 3* value(x) + 2* value(y)
+     * @return FULL_HOUSE (6000000) + IF xxyyy -> 2* value(x) + 14*3* value(y) ELSE 14*3* value(x) + 2* value(y)
      */
     private int calculateFullHouseValue() {
-        return handType.getBaseValue() + (calculationCards.get(0).rank().getValue() == calculationCards.get(2).rank().getValue()
-                ? (3 * calculationCards.get(0).rank().getValue() + 2 * calculationCards.get(2).rank().getValue())
-                : (2 * calculationCards.get(0).rank().getValue() + 3 * calculationCards.get(2).rank().getValue()));
+        calculationCards.sort(Comparator.comparingInt(card -> card.rank().getValue()));
+
+        int rank1 = calculationCards.get(0).rank().getValue();
+        int rank2 = calculationCards.get(4).rank().getValue();
+
+        // Check if it's in the format xxyyy or xxxyy
+        if ((rank1 == rank2 && calculationCards.get(2).rank().getValue() != rank1) ||
+                (rank1 != rank2 && calculationCards.get(2).rank().getValue() == rank2)) {
+            return handType.getBaseValue() + (14 * 3 * rank2) + (2 * rank1);
+        } else {
+            return handType.getBaseValue() + (14 * 3 * rank1) + (2 * rank2);
+        }
     }
 
     /**

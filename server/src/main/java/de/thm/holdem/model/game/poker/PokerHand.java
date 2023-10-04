@@ -208,7 +208,7 @@ public class PokerHand {
             // hand contains only HIGH_CARD
             handCards.add(cardsToEvaluate.get(0));
         }
-        return new PokerHandResult(handType, cardsToEvaluate, handCards);
+        return new PokerHandResult(handType, new ArrayList<>(cardsToEvaluate), new ArrayList<>(handCards));
     }
 
 

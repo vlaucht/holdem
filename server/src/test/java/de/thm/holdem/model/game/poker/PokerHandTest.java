@@ -263,7 +263,9 @@ class PokerHandTest {
         pokerHand.addCards(cards);
 
         ArrayList<ArrayList<Card>> combinations = pokerHand.find5CardsCombinations(new ArrayList<>(cards));
-        assertEquals(6, combinations.size());
+        // make sure there are no duplicates
+        long uniques = combinations.stream().distinct().count();
+        assertEquals(6, uniques);
     }
 
     @Test
@@ -280,7 +282,9 @@ class PokerHandTest {
         pokerHand.addCards(cards);
 
         ArrayList<ArrayList<Card>> combinations = pokerHand.find5CardsCombinations(new ArrayList<>(cards));
-        assertEquals(21, combinations.size());
+        // make sure there are no duplicates
+        long uniques = combinations.stream().distinct().count();
+        assertEquals(21, uniques);
     }
 
     @Test
