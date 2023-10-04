@@ -1,6 +1,7 @@
 package de.thm.holdem.model.game.poker;
 
 import de.thm.holdem.model.card.Card;
+import de.thm.holdem.model.card.Rank;
 import de.thm.holdem.model.card.Suit;
 
 import java.util.*;
@@ -76,7 +77,7 @@ public class PokerHand {
 
                 if (bestHandResult == null || currentHandResult.compareTo(bestHandResult) > 0) {
                     bestHandResult = currentHandResult;
-                    this.cards = combination; // Update cards with the best combination
+                    this.cards = new ArrayList<>(combination); // Update cards with the best combination
                 }
             }
 
@@ -90,7 +91,7 @@ public class PokerHand {
      * @param cards an arraylist of 7 cards
      * @return all the possible 5 card combinations
      */
-    private ArrayList<ArrayList<Card>> find5CardsCombinations(ArrayList<Card> cards) {
+    ArrayList<ArrayList<Card>> find5CardsCombinations(ArrayList<Card> cards) {
         ArrayList<ArrayList<Card>> allCardCombinations = new ArrayList<>();
         backtrack(allCardCombinations, new ArrayList<>(), cards, cards.size(), 5, 0);
         return allCardCombinations;
@@ -165,11 +166,19 @@ public class PokerHand {
         // check if hand contains FOUR_OF_A_KIND
         if (doesRankCountContain(rankCounts, 4)) {
             handType = PokerHandType.FOUR_OF_A_KIND;
-            handCards = findXOfAKindCards(ranks, 4);
+            handCards = findXOfAKindCards(ranks, 4, cardsToEvaluate);
         // check if hand contains FULL_HOUSE
         } else if (doesRankCountContain(rankCounts, 3) && doesRankCountContain(rankCounts, 2)) {
             handType = PokerHandType.FULL_HOUSE;
             handCards.addAll(cardsToEvaluate);
+        // check if hand contains STRAIGHT_FLUSH
+        } else if (isStraight(ranks) && isFlush(cardsToEvaluate)) {
+        handType = PokerHandType.STRAIGHT_FLUSH;
+        handCards.addAll(cardsToEvaluate);
+            // If the highest card is an Ace, it's a Royal Flush
+            if (cardsToEvaluate.get(0).rank() == Rank.ACE) {
+                handType = PokerHandType.ROYAL_FLUSH;
+            }
         // check if hand contains FLUSH
         } else if (isFlush(cardsToEvaluate)) {
             handType = PokerHandType.FLUSH;
@@ -181,7 +190,7 @@ public class PokerHand {
         // check if hand contains THREE_OF_A_KIND
         } else if (doesRankCountContain(rankCounts, 3)) {
             handType = PokerHandType.THREE_OF_A_KIND;
-            handCards = findXOfAKindCards(ranks, 3);
+            handCards = findXOfAKindCards(ranks, 3, cardsToEvaluate);
         // check if hand contains ONE_PAIR
         } else if (doesRankCountContain(rankCounts, 2)) {
             int pairRank = findPairRank(rankCounts);
@@ -189,12 +198,15 @@ public class PokerHand {
             // check if hand contains TWO_PAIRS
             if (remainingPairRank > 0) {
                 handType = PokerHandType.TWO_PAIRS;
-                handCards = findPairsCards(pairRank, remainingPairRank);
+                handCards = findPairsCards(pairRank, remainingPairRank, cardsToEvaluate);
             // hand contains only ONE_PAIR
             } else {
                 handType = PokerHandType.ONE_PAIR;
-                handCards = findPairsCards(pairRank, 0);
+                handCards = findPairsCards(pairRank, 0, cardsToEvaluate);
             }
+        } else {
+            // hand contains only HIGH_CARD
+            handCards.add(cardsToEvaluate.get(0));
         }
         return new PokerHandResult(handType, cardsToEvaluate, handCards);
     }
@@ -205,11 +217,12 @@ public class PokerHand {
      *
      * @param pairRank1 the rank of the first pair.
      * @param pairRank2 the rank of the second pair, provide 0 if only one pair exists.
+     * @param cardsToEvaluate a list of cards to evaluate.
      * @return a list of the cards that make up one or two pairs.
      */
-    private List<Card> findPairsCards(int pairRank1, int pairRank2) {
+    private List<Card> findPairsCards(int pairRank1, int pairRank2, List<Card> cardsToEvaluate) {
         List<Card> pairsCards = new ArrayList<>();
-        for (Card card : cards) {
+        for (Card card : cardsToEvaluate) {
             int rank = card.rank().getValue();
             if (rank == pairRank1 || rank == pairRank2) {
                 pairsCards.add(card);
@@ -224,11 +237,12 @@ public class PokerHand {
      *
      * @param ranks      a list of ranks of the hand.
      * @param targetCount the count to search for (e.g., 3 for Three of a Kind, 4 for Four of a Kind).
+     * @param cardsToEvaluate a list of cards to evaluate.
      * @return a list of the cards that form the specified count of a Kind.
      */
-    private List<Card> findXOfAKindCards(List<Integer> ranks, int targetCount) {
+    private List<Card> findXOfAKindCards(List<Integer> ranks, int targetCount, List<Card> cardsToEvaluate) {
         List<Card> xOfAKindCards = new ArrayList<>();
-        for (Card card : cards) {
+        for (Card card : cardsToEvaluate) {
             int rank = card.rank().getValue();
             if (Collections.frequency(ranks, rank) == targetCount) {
                 xOfAKindCards.add(card);
