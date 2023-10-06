@@ -74,6 +74,7 @@ public class PokerGameServiceImpl implements PokerGameService, GameListener {
         return gameStateDto;
     }
 
+
     public void performAction(GameActionRequest request, String playerId) {
         String action = request.getAction();
         PokerPlayerAction pokerAction = PokerPlayerAction.fromString(action);

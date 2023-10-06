@@ -123,6 +123,7 @@ public class UserServiceImpl implements UserService  {
         return userExtraRepository.save(userExtra);
     }
 
+    /** {@inheritDoc} */
     public void notifyUserUpdate(UserExtra userExtra) {
         websocketService.sendPrivate(userExtra.getId(), "user-extra", userExtra);
     }

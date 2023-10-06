@@ -43,7 +43,6 @@ public class WebsocketServiceImpl implements WebsocketService {
     @Override
     public <T> void sendPrivateToSession(String sessionId, String channel, T payload) {
         String destination = "/queue/" + channel;
-        System.out.println("Sending to " + sessionId + " on " + destination);
         template.convertAndSendToUser(sessionId, destination, payload,
                 createHeaders(sessionId));
     }

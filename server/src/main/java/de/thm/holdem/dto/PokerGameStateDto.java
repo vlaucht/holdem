@@ -35,6 +35,8 @@ public class PokerGameStateDto {
 
     private List<Integer> pots;
 
+    private int currentBet;
+
 
     public static PokerGameStateDto from(PokerGame game, ClientOperation operation) {
         PokerGameStateDto dto = new PokerGameStateDto();
@@ -43,10 +45,11 @@ public class PokerGameStateDto {
         dto.setName(game.getName());
         dto.setGameStatus(game.getGameStatus().getPrettyName());
         dto.setOperation(operation);
+        dto.setCurrentBet(game.getCurrentBet() != null ? game.getCurrentBet().intValue() : 0);
         dto.setPlayers(game.getPlayerList().stream().map(player ->
                 PokerPlayerStateDto.from((PokerPlayer) player, game, false)).toList());
         dto.setBettingRound(game.getBettingRound().toString());
-        dto.setPots(game.getPots().stream().map(pot -> pot.getBet().intValue()).toList());
+        dto.setPots(game.getPots().stream().map(pot -> pot.getPotSize().intValue()).toList());
 
         if (game.getBettingRound().isAfter(BettingRound.NONE)) {
             dto.setBigBlind(game.getSmallBlindLevels().get(game.getCurrentBlindLevel()).multiply(BigInteger.TWO).intValue());

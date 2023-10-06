@@ -71,10 +71,16 @@ public interface PokerGameService {
      */
     PokerGame joinGame(String gameId, String userId) throws Exception;
 
+    /**
+     * Starts a game.
+     *
+     * @param gameId the id of the game.
+     * @param playerId the id of the player.
+     * @throws Exception if the game could not be started.
+     */
     void startGame(String gameId, String playerId) throws Exception;
 
     PokerGameStateDto mergePrivateInfo(PokerGame game, String playerId);
-
     void performAction(GameActionRequest request, String playerId);
 
     void sendErrorMessage(String playerId, ApiError error);

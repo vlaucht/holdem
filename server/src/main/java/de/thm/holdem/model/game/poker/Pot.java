@@ -1,102 +1,130 @@
 package de.thm.holdem.model.game.poker;
 
-import de.thm.holdem.model.player.Player;
+import de.thm.holdem.model.player.PokerPlayer;
 
 import java.math.BigInteger;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Represents a pot in a poker game.
  */
 public class Pot {
 
-        /** Current bet of each player in the pot. */
-        private BigInteger bet;
 
-        /** Players that have contributed to this pot. */
-        public final Set<Player> contributors;
+    /**
+     * Players that have contributed to this pot and the contribution.
+     */
+    protected final Map<PokerPlayer, BigInteger> contributions;
 
-        public Pot(BigInteger bet) {
-            this.bet = bet;
-            contributors = new HashSet<>();
+    public Pot() {
+        contributions = new HashMap<>();
+    }
+
+
+    public BigInteger getPotSize() {
+        BigInteger totalPotSize = BigInteger.ZERO;
+        for (BigInteger contribution : contributions.values()) {
+            totalPotSize = totalPotSize.add(contribution);
+        }
+        return totalPotSize;
+    }
+
+    public PokerPlayer getAllInPlayerWithSmallestStack() {
+        // Filter out the allIn contributors
+        Map<PokerPlayer, BigInteger> allInContributors = contributions.entrySet().stream()
+                .filter(entry -> entry.getKey().isAllIn())
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        if (allInContributors.isEmpty()) {
+            // No allIn contributors
+            return null;
         }
 
-        /**
-         * Returns the current bet of each player in the pot.
-         *
-         * @return The current bet.
-         */
-        public BigInteger getBet() {
-            return bet;
-        }
+        // Find the highest contribution amount
+        BigInteger highestContribution = allInContributors.values().stream()
+                .max(BigInteger::compareTo)
+                .orElse(BigInteger.ZERO);
 
-        /**
-         * Returns the contributing players.
-         *
-         * @return The contributing players.
-         */
-        public Set<Player> getContributors() {
-            return contributors;
-        }
+        // Find the allIn contributor with the least contribution
+        Optional<PokerPlayer> allInContributorWithLeastContribution = allInContributors.entrySet().stream()
+                .filter(entry -> entry.getValue().compareTo(highestContribution) < 0)
+                .map(Map.Entry::getKey)
+                .min(Comparator.comparing(contributions::get));
 
-        /**
-         * Adds a contributing player to the pot.
-         *
-         * @param player The player.
-         */
-        public void addContributor(Player player) {
-            contributors.add(player);
-        }
+        return allInContributorWithLeastContribution.orElse(null);
+    }
 
-        /**
-         * Checks whether a specific player has contributed to this pot.
-         *
-         * @param player The player to check for
-         * @return True if the player has contributed, false otherwise.
-         */
-        public boolean hasContributed(Player player) {
-            return contributors.contains(player);
-        }
 
-        /**
-         * Returns the total value of this pot.
-         *
-         * <p>
-         *     This is the bet multiplied by the number of contributors.
-         * </p>
-         *
-         * @return The total value.
-         */
-        public BigInteger getValue() {
-            return bet.multiply(BigInteger.valueOf(contributors.size()));
-        }
 
-        /**
-         * In case of a partial call, bet or raise, splits this pot into two pots,
-         * with this pot keeping the lower bet and the other pot the remainder.
-         *
-         * @param player The player with the partial call, bet or raise.
-         * @param partialBet The amount of the partial bet.
-         * @return The other pot, with the remainder.
-         */
-        public Pot split(Player player, BigInteger partialBet) {
-            Pot pot = new Pot(bet.subtract(partialBet));
-            for (Player contributor : contributors) {
-                pot.addContributor(contributor);
-            }
-            bet = partialBet;
-            contributors.add(player);
-            return pot;
-        }
+    /**
+     * Returns the contributing players.
+     *
+     * @return The contributing players.
+     */
+    public Set<PokerPlayer> getContributors() {
+        return contributions.keySet();
+    }
 
-        /**
-         * Clears this pot.
-         */
-        public void clear() {
-            bet = BigInteger.ZERO;
-            contributors.clear();
+    /**
+     * Adds a player to the contributors.
+     *
+     * @param player The player to add.
+     */
+    public void addContributor(PokerPlayer player, BigInteger contribution) {
+        contributions.put(player, contribution);
+    }
+
+
+    public Set<PokerPlayer> getWinners() {
+
+        Set<PokerPlayer> contributors = getContributors();
+
+        // Find the highest handScore among contributors
+        int highestHandScore = contributors.stream()
+                .filter(player -> !player.isFolded())
+                .mapToInt(PokerPlayer::getHandScore)
+                .max()
+                .orElse(0);
+
+        // return players with the highest handScore and who have not folded
+        return contributors.stream()
+                .filter(player -> !player.isFolded() && player.getHandScore() == highestHandScore)
+                .collect(Collectors.toSet());
+    }
+
+
+
+    public Pot split(PokerPlayer allInPlayerWithSmallestStack) {
+        Pot sidePot = new Pot();
+        BigInteger allInContribution = getPlayerContribution(allInPlayerWithSmallestStack);
+        for (PokerPlayer player : contributions.keySet()) {
+            if (player.equals(allInPlayerWithSmallestStack)) continue;
+            BigInteger contribution = getPlayerContribution(player);
+            contributions.merge(player, allInContribution, BigInteger::subtract);
+            BigInteger remainder = contribution.subtract(allInContribution);
+            sidePot.addContributor(player, remainder);
         }
+        return sidePot;
+    }
+
+
+    public BigInteger getPlayerContribution(PokerPlayer player) {
+        return contributions.getOrDefault(player, BigInteger.ZERO);
+    }
+
+
+    public void contribute(PokerPlayer player, BigInteger amount) {
+        BigInteger playerContribution = getPlayerContribution(player);
+        contributions.put(player, playerContribution.add(amount));
+    }
+
+    /**
+     * Clears the pot.
+     */
+    public void clear() {
+        contributions.clear();
+    }
 
 
 }

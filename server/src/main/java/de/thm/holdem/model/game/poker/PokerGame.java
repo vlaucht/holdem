@@ -256,33 +256,20 @@ public class PokerGame extends Game {
     }
 
     private void contributePot(BigInteger amount) {
-        List<Pot> newPots = new ArrayList<>();
-        for (Pot pot : pots) {
-            if (!pot.hasContributed(actor)) {
-                BigInteger potBet = pot.getBet();
-                if (amount.compareTo(potBet) >= 0) {
-                    // Regular call, bet, or raise.
-                    pot.addContributor(actor);
-                    amount = amount.subtract(potBet);
-                } else {
-                    // Partial call (all-in); create a new pot.
-                    Pot newPot = pot.split(actor, amount);
-                    newPots.add(newPot);
-                    amount = BigInteger.ZERO;
-                }
-            }
-            if (amount.compareTo(BigInteger.ZERO) <= 0) {
-                break;
-            }
+        if (pots.isEmpty()) {
+            pots.add(new Pot());
         }
+        pots.get(pots.size() - 1).contribute(actor, amount);
+    }
 
-        // Add newly created pots to the original pots list.
-        pots.addAll(newPots);
-
-        if (amount.compareTo(BigInteger.ZERO) > 0) {
-            Pot pot = new Pot(amount);
-            pot.addContributor(actor);
-            pots.add(pot);
+    private void checkForSplitPots() {
+        Pot currentPot = pots.get(pots.size() - 1);
+        PokerPlayer allInPlayerWithSmallestStack = currentPot.getAllInPlayerWithSmallestStack();
+        while (allInPlayerWithSmallestStack != null) {
+            Pot sidePot = currentPot.split(allInPlayerWithSmallestStack);
+            pots.add(sidePot);
+            currentPot = sidePot;
+            allInPlayerWithSmallestStack = currentPot.getAllInPlayerWithSmallestStack();
         }
     }
 
@@ -540,7 +527,7 @@ public class PokerGame extends Game {
         contributePot(allIn);
         raises++;
         lastBettor = player;
-        currentBet = player.getCurrentBet();
+        currentBet = player.getCurrentBet().compareTo(currentBet) > 0 ? player.getCurrentBet() : currentBet;
         player.setLastAction(PokerPlayerAction.ALL_IN);
 
         rotateActor(true);
@@ -637,6 +624,7 @@ public class PokerGame extends Game {
                 flopCards.add(deck.drawCard());
                 addCardsToHands(flopCards);
                 actor = dealer;
+                checkForSplitPots();
                 rotateActor(true);
             }
             case FLOP -> {
@@ -645,6 +633,7 @@ public class PokerGame extends Game {
                 turnCard = deck.drawCard();
                 addCardsToHands(List.of(turnCard));
                 actor = dealer;
+                checkForSplitPots();
                 rotateActor(true);
             }
             case TURN -> {
@@ -653,10 +642,12 @@ public class PokerGame extends Game {
                 riverCard = deck.drawCard();
                 addCardsToHands(List.of(riverCard));
                 actor = dealer;
+                checkForSplitPots();
                 rotateActor(true);
             }
             case RIVER -> {
                 bettingRound = BettingRound.END;
+                checkForSplitPots();
                 doShowdown();
             }
         }
@@ -675,7 +666,7 @@ public class PokerGame extends Game {
     private BigInteger getTotalPot() {
         BigInteger totalPot = BigInteger.ZERO;
         for (Pot pot : pots) {
-            totalPot = totalPot.add(pot.getValue());
+            totalPot = totalPot.add(pot.getPotSize());
         }
         return totalPot;
     }
@@ -683,12 +674,10 @@ public class PokerGame extends Game {
     private List<PokerPlayer> determineShowdownOrder() throws ReflectiveOperationException, GameActionException {
         // Determine show order; start with all-in players...
         List<PokerPlayer> showingPlayers = new ArrayList<>();
-        for (Pot pot : pots) {
-            for (Player contributor : pot.getContributors()) {
-                PokerPlayer player = (PokerPlayer) contributor;
-                if (!showingPlayers.contains(player) && player.isAllIn()) {
-                    showingPlayers.add(player);
-                }
+        for (Player player : playerList) {
+            PokerPlayer pokerPlayer = (PokerPlayer) player;
+            if (pokerPlayer.isAllIn()) {
+                showingPlayers.add(pokerPlayer);
             }
         }
         // ...then last player to bet or raise (aggressor)...
@@ -709,68 +698,38 @@ public class PokerGame extends Game {
         return showingPlayers;
     }
 
-    private void calculateWinning(List<PokerPlayer> showingPlayers) throws ReflectiveOperationException, GameActionException {
+    private void distributePot() {
         if(bettingRound != BettingRound.END) return;
-        // Sort players by hand value (highest to lowest).
-        Map<Integer, List<PokerPlayer>> rankedPlayers = new TreeMap<>(Collections.reverseOrder());
-        for (PokerPlayer player : showingPlayers) {
-            int handValue = player.getHandScore();
-            List<PokerPlayer> playerList = rankedPlayers.get(handValue);
-            if (playerList == null) {
-                playerList = new ArrayList<>();
-            }
-            playerList.add(player);
-            rankedPlayers.put(handValue, playerList);
-        }
-
-        // Per rank (single or multiple winners), calculate pot distribution.
         Map<PokerPlayer, BigInteger> potDivision = new HashMap<>();
-        for (int handValue : rankedPlayers.keySet()) {
-            List<PokerPlayer> winners = rankedPlayers.get(handValue);
-            for (Pot pot : pots) {
-                // Determine how many winners share this pot.
-                int noOfWinnersInPot = 0;
-                for (Player winner : winners) {
-                    if (pot.hasContributed(winner)) {
-                        noOfWinnersInPot++;
-                    }
-                }
-                if (noOfWinnersInPot > 0) {
-                    // Divide pot over winners.
-                    BigInteger potShare = pot.getValue().divide(new BigInteger(String.valueOf(noOfWinnersInPot)));
-                    for (PokerPlayer winner : winners) {
-                        if (pot.hasContributed(winner)) {
-                            potDivision.merge(winner, potShare, BigInteger::add);
-                        }
-                    }
-                    // Determine if we have any odd chips left in the pot.
-                    BigInteger oddChips = pot.getValue().remainder(new BigInteger(String.valueOf(noOfWinnersInPot)));
-                    if (oddChips.compareTo(BigInteger.ZERO) > 0) {
-                        // Divide odd chips over winners, starting left of the dealer.
-                        actor = dealer;
-                        while (oddChips.compareTo(BigInteger.ZERO) > 0) {
-                            rotateActor(false);
-                            PokerPlayer winner = actor;
-                            BigInteger oldShare = potDivision.get(winner);
-                            if (oldShare != null) {
-                                potDivision.put(winner, oldShare.add(BigInteger.ONE));
-                                oddChips = oddChips.subtract(BigInteger.ONE);
-                            }
-                        }
+        for (Pot pot: pots) {
+            Set<PokerPlayer> winners = pot.getWinners();
+            // Calculate the pot division and remainder
+            BigInteger[] divisionResult = pot.getPotSize().divideAndRemainder(new BigInteger(String.valueOf(winners.size())));
+            BigInteger potShare = divisionResult[0]; // Pot share for each winner
+            BigInteger remainder = divisionResult[1]; // Remaining odd chips
+            for (PokerPlayer winner : winners) {
+                potDivision.merge(winner, potShare, BigInteger::add);
+            }
 
-                    }
-                    pot.clear();
+            // Distribute any odd chips one by one to the winners in order
+            int chipsToDistribute = 1;
+            for (PokerPlayer winner : winners) {
+                if (chipsToDistribute > remainder.intValue()) {
+                    break; // No more odd chips to distribute
                 }
+                potDivision.merge(winner, BigInteger.ONE, BigInteger::add);
+                chipsToDistribute++;
             }
         }
 
-        // Divide winnings.
+        // distribute winnings to players
         for (PokerPlayer winner : potDivision.keySet()) {
             BigInteger potShare = potDivision.get(winner);
             winner.win(potShare);
             winner.setPotShare(potShare);
         }
     }
+
 
     /**
      * Performs the showdown.
@@ -791,7 +750,7 @@ public class PokerGame extends Game {
             }
         }
 
-        calculateWinning(showingPlayers);
+        distributePot();
 
     }
 

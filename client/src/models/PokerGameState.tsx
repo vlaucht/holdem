@@ -14,4 +14,5 @@ export interface PokerGameState {
     maxPlayers: number;
     bigBlind: number;
     pots: number[];
+    currentBet: number;
 }

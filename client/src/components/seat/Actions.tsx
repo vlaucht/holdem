@@ -42,7 +42,7 @@ export const Actions: React.FunctionComponent<ActionProps> = ({ player, game }) 
             actionButtons.push(<Button onClick={() => performAction('check')} key={"check"} size="sm" color="cyan">{actionButtonText["check"]}</Button>)
         }
         if (player.allowedActions.includes("call")) {
-            actionButtons.push(<Button onClick={() => performAction('call')} key={"call"} size="sm" color="cyan">{actionButtonText["call"]}</Button>)
+            actionButtons.push(<Button onClick={() => performAction('call')} key={"call"} size="sm" color="cyan">{actionButtonText["call"]} ({game.currentBet - player.bet})</Button>)
         }
         if (player.allowedActions.includes("raise")) {
             // Calculate the maximum value for the slider
