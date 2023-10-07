@@ -1,23 +1,17 @@
-/*
 package de.thm.holdem.model.game.poker;
 
+import de.thm.holdem.dto.ClientOperation;
 import de.thm.holdem.exception.GameActionException;
-import de.thm.holdem.exception.IllegalGameActionException;
-import de.thm.holdem.model.card.Card;
-import de.thm.holdem.model.card.Rank;
-import de.thm.holdem.model.card.Suit;
 import de.thm.holdem.model.game.GameStatus;
 import de.thm.holdem.model.player.PokerPlayer;
-import de.thm.holdem.utils.PokerHandEvaluator;
 import de.thm.holdem.settings.PokerGameSettings;
-import de.thm.holdem.utils.ClassFactory;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.math.BigInteger;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -26,659 +20,482 @@ import static org.mockito.Mockito.*;
 class PokerGameTest {
 
     private PokerGame pokerGame;
+
+    @Mock
     private PokerPlayer creator;
 
-    private PokerGameSettings settings;
+    @Mock
+    private PokerPlayer player1;
+
+    @Mock
+    private PokerPlayer player2;
+
+    @Mock
+    private PokerPlayer player3;
 
     @BeforeEach
     void setUp() {
-        creator  = new PokerPlayer("Creator");
-        settings = new PokerGameSettings();
-        settings.setMaxPlayers(5);
-        settings.setTimeToRaiseBlinds(20);
+        MockitoAnnotations.openMocks(this);
+        PokerGameSettings settings = new PokerGameSettings();
         settings.setTimePerPlayerMove(3);
+        settings.setTimeToRaiseBlinds(20);
         settings.setTotalTournamentTime(180);
-        pokerGame = new PokerGame(creator, 1000, settings);
+        pokerGame = new PokerGame(creator, BigInteger.valueOf(1000), settings, TableType.NO_LIMIT, 3, "test::game");
     }
 
     @Test
-    void Should_DeductBuyInFromCreator() {
-        creator  = new PokerPlayer("Creator");
-        int bankRoll = creator.getBankroll();
-        pokerGame = new PokerGame(creator, 1000, settings);
+    void Should_GetPlayerById() {
+        when(creator.getId()).thenReturn("test::id");
 
-        assertEquals(bankRoll - pokerGame.getBuyIn(), pokerGame.getPlayerList().get(0).getBankroll());
+        PokerPlayer result = (PokerPlayer) pokerGame.getPlayerById("test::id");
+
+        assertEquals(creator, result);
+    }
+
+    @Test
+    void Should_RemovePlayerFromGame() {
+        pokerGame.removePlayer(creator);
+
+        assertEquals(0, pokerGame.getPlayerList().size());
     }
 
     @Test
     void Should_ThrowException_If_TooManyPlayersJoin() throws Exception {
-        pokerGame.addPlayer(new PokerPlayer("Player1"));
-        pokerGame.addPlayer(new PokerPlayer("Player2"));
-        pokerGame.addPlayer(new PokerPlayer("Player3"));
-        pokerGame.addPlayer(new PokerPlayer("Player4"));
-        assertThrows(IllegalGameActionException.class, () -> pokerGame.addPlayer(new PokerPlayer("Player5")));
+        PokerGame mockPokerGame = Mockito.spy(pokerGame);
+        doNothing().when(mockPokerGame).startGame();
+        mockPokerGame.addPlayer(player1);
+        mockPokerGame.addPlayer(player2);
+
+        assertThrows(GameActionException.class, () -> mockPokerGame.addPlayer(player3));
     }
 
     @Test
-    void Should_DeductBuyInFromJoiningPlayers() throws Exception {
-        PokerPlayer player = new PokerPlayer("Player1");
-        int bankroll = player.getBankroll();
-        pokerGame.addPlayer(player);
-        pokerGame.addPlayer(new PokerPlayer("Player2"));
-        pokerGame.getPlayerList().forEach(p -> {
-            assertEquals(bankroll - pokerGame.getBuyIn(), p.getBankroll());
-        });
+    void Should_ThrowException_If_PlayerJoinsTwice() throws Exception {
+        pokerGame.addPlayer(player1);
+        assertThrows(GameActionException.class, () -> pokerGame.addPlayer(player1));
     }
 
     @Test
-    void Should_StartGame_If_GameIsFull() throws Exception {
-        pokerGame.addPlayer(new PokerPlayer("Player1"));
-        pokerGame.addPlayer(new PokerPlayer("Player2"));
-        pokerGame.addPlayer(new PokerPlayer("Player3"));
-        pokerGame.addPlayer(new PokerPlayer("Player4"));
+    void Should_StartGame_If_MaxPlayerCountReached() throws Exception {
+        PokerGame mockPokerGame = Mockito.spy(pokerGame);
+        doNothing().when(mockPokerGame).startGame();
+        mockPokerGame.addPlayer(player1);
+        mockPokerGame.addPlayer(player2);
 
-        Assertions.assertEquals(GameStatus.IN_PROGRESS, pokerGame.getGameStatus());
+        verify(mockPokerGame, times(1)).startGame();
     }
 
     @Test
-    void Should_NotStartGame_If_LessThanThreePlayers() throws Exception {
-        pokerGame.addPlayer(new PokerPlayer("Player1"));
-        assertThrows(GameActionException.class, () -> pokerGame.startGame());
-        assertNotEquals(GameStatus.IN_PROGRESS, pokerGame.getGameStatus());
+    void Should_NotStartGame_If_GameIsAlreadyRunning() {
+        PokerGame mockPokerGame = Mockito.spy(pokerGame);
+        when(mockPokerGame.getGameStatus()).thenReturn(GameStatus.IN_PROGRESS);
+
+        assertThrows(GameActionException.class, mockPokerGame::startGame);
     }
 
     @Test
-    void Should_NotStartGame_If_GameIsAlreadyInProgress() throws Exception {
-        pokerGame.addPlayer(new PokerPlayer("Player1"));
-        pokerGame.addPlayer(new PokerPlayer("Player2"));
-        pokerGame.startGame();
-        assertThrows(IllegalGameActionException.class, () -> pokerGame.startGame());
+    void Should_NotStartGame_If_GameIsAlreadyFinished() {
+        PokerGame mockPokerGame = Mockito.spy(pokerGame);
+        when(mockPokerGame.getGameStatus()).thenReturn(GameStatus.FINISHED);
+
+        assertThrows(GameActionException.class, mockPokerGame::startGame);
+    }
+
+    @Test
+    void Should_NotStartGame_If_LessThanTwoPlayersJoined() {
+        assertThrows(GameActionException.class, pokerGame::startGame);
     }
 
     @Test
     void Should_StartGame() throws Exception {
-        pokerGame.addPlayer(new PokerPlayer("Small Blind"));
-        pokerGame.addPlayer(new PokerPlayer("Big Blind"));
-        pokerGame.startGame();
+        PokerGame mockPokerGame = Mockito.spy(pokerGame);
+        doNothing().when(mockPokerGame).deal();
+        mockPokerGame.addPlayer(player1);
 
-        assertEquals(GameStatus.IN_PROGRESS, pokerGame.getGameStatus());
-        assertEquals("Creator", pokerGame.getDealer().getAlias());
-        assertEquals("Small Blind", pokerGame.getSmallBlindPlayer().getAlias());
-        assertEquals("Big Blind", pokerGame.getBigBlindPlayer().getAlias());
+        mockPokerGame.startGame();
+
+        assertEquals(GameStatus.IN_PROGRESS, mockPokerGame.getGameStatus());
+        assertNotNull(mockPokerGame.dealer);
+        assertEquals(mockPokerGame.dealer, mockPokerGame.actor);
     }
 
     @Test
-    void Should_ThrowException_If_DealIsCalledAndGameIsNotInProgress() {
-        assertThrows(IllegalGameActionException.class, () -> pokerGame.deal());
+    void Should_NotDeal_If_GameHasNotStarted() {
+        assertThrows(GameActionException.class, pokerGame::deal);
     }
 
     @Test
-    public void Should_DealTwoCardsToEachPlayer() throws Exception {
-        pokerGame.addPlayer(new PokerPlayer("Small Blind"));
-        pokerGame.addPlayer(new PokerPlayer("Big Blind"));
-        pokerGame.startGame();
-        pokerGame.deal();
+    void Should_DealTwoCardsToPlayers  () throws Exception {
+        PokerGame mockPokerGame = Mockito.spy(pokerGame);
+        doNothing().when(mockPokerGame).startGame();
+        mockPokerGame.addPlayer(player1);
+        mockPokerGame.addPlayer(player2);
+        PokerHand mockHand = Mockito.mock(PokerHand.class);
+        when(mockPokerGame.getGameStatus()).thenReturn(GameStatus.IN_PROGRESS);
+        doNothing().when(mockPokerGame).paySmallBlind();
+        doNothing().when(mockPokerGame).payBigBlind();
+        doNothing().when(mockPokerGame).notifyGameState(ClientOperation.DEAL);
+        doNothing().when(mockPokerGame).notifyPlayers(ClientOperation.DEAL);
+        doNothing().when(creator).dealCard(any());
+        doNothing().when(player1).dealCard(any());
+        when(creator.getHand()).thenReturn(mockHand);
+        when(player1.getHand()).thenReturn(mockHand);
+
+        // verify that player2 is not dealt cards because he is a spectator
+        when(player2.isSpectator()).thenReturn(true);
 
 
-        // Verify that each player received two cards
-        assertEquals(2, pokerGame.getSmallBlindPlayer().getHand().size());
-        assertEquals(2, pokerGame.getBigBlindPlayer().getHand().size());
-        assertEquals(2, pokerGame.getDealer().getHand().size());
+        mockPokerGame.deck = Mockito.spy(mockPokerGame.deck);
+
+        mockPokerGame.deal();
+
+        assertEquals(BettingRound.PRE_FLOP, mockPokerGame.bettingRound);
+        verify(mockPokerGame.deck, times(1)).shuffle();
+        verify(mockPokerGame, times(1)).paySmallBlind();
+        verify(mockPokerGame, times(1)).payBigBlind();
+        verify(mockPokerGame, times(1)).notifyGameState(ClientOperation.DEAL);
+        verify(mockPokerGame, times(1)).notifyPlayers(ClientOperation.DEAL);
+        verify(creator, times(2)).dealCard(any());
+        verify(player1, times(2)).dealCard(any());
+        verify(player2, times(0)).dealCard(any());
+        verify(mockHand, times(2)).addCards(any());
     }
 
     @Test
-    void Should_BetBlinds_If_DealIsCalled() throws Exception {
-        pokerGame.addPlayer(new PokerPlayer("Small Blind"));
-        pokerGame.addPlayer(new PokerPlayer("Big Blind"));
-        pokerGame.startGame();
-        pokerGame.deal();
+    void Should_PaySmallBlind() throws GameActionException {
+        PokerGame mockPokerGame = Mockito.spy(pokerGame);
+        mockPokerGame.actor = creator;
+        mockPokerGame.currentBlindLevel = 0;
+        mockPokerGame.smallBlindLevels = List.of(new BigInteger[]{BigInteger.valueOf(10), BigInteger.valueOf(20)});
+        doNothing().when(creator).paySmallBlind(BigInteger.valueOf(10));
+        doNothing().when(mockPokerGame).rotateActor(false);
+        doNothing().when(mockPokerGame).contributePot(BigInteger.valueOf(10));
 
-        // mock blind levels
-        pokerGame.smallBlindLevels = Arrays.asList(10, 20, 30);
+        mockPokerGame.paySmallBlind();
 
-        // Verify that small blind and big blind bets were placed correctly
-        assertEquals(10, pokerGame.getSmallBlindPlayer().getCurrentBet());
-        assertEquals(20, pokerGame.getBigBlindPlayer().getCurrentBet());
-
-        // Verify that current bet is set to big blind
-        assertEquals(20, pokerGame.getCurrentBet());
+        verify(mockPokerGame, times(1)).rotateActor(false);
+        assertEquals(creator, mockPokerGame.smallBlindPlayer);
+        verify(creator, times(1)).paySmallBlind(BigInteger.valueOf(10));
+        verify(mockPokerGame, times(1)).contributePot(BigInteger.valueOf(10));
+        assertEquals(BigInteger.valueOf(10), mockPokerGame.currentBet);
     }
 
     @Test
-    void Should_SetActivePlayer_If_DealIsCalled() throws Exception {
-        pokerGame.addPlayer(new PokerPlayer("Small Blind"));
-        pokerGame.addPlayer(new PokerPlayer("Big Blind"));
-        pokerGame.startGame();
-        pokerGame.deal();
+    void Should_PayBigBlind() throws GameActionException {
+        PokerGame mockPokerGame = Mockito.spy(pokerGame);
+        mockPokerGame.actor = creator;
+        mockPokerGame.currentBlindLevel = 0;
+        mockPokerGame.smallBlindLevels = List.of(new BigInteger[]{BigInteger.valueOf(10), BigInteger.valueOf(20)});
+        doNothing().when(creator).paySmallBlind(BigInteger.valueOf(20));
+        doNothing().when(mockPokerGame).rotateActor(true);
+        doNothing().when(mockPokerGame).contributePot(BigInteger.valueOf(20));
 
-        // Verify that the active player is set correctly (should be the next player after big blind)
-        assertEquals(pokerGame.getDealer(), pokerGame.getActivePlayer());
+        mockPokerGame.payBigBlind();
+
+        verify(mockPokerGame, times(1)).rotateActor(true);
+        assertEquals(creator, mockPokerGame.bigBlindPlayer);
+        verify(creator, times(1)).payBigBlind(BigInteger.valueOf(20));
+        verify(mockPokerGame, times(1)).contributePot(BigInteger.valueOf(20));
+        assertEquals(BigInteger.valueOf(20), mockPokerGame.currentBet);
     }
 
     @Test
-    void Should_RaiseBlindLevel() {
-        pokerGame.raiseBlinds();
-        assertEquals(1, pokerGame.getCurrentBlindLevel());
+    void Should_ContributeToPot() {
+        PokerGame mockPokerGame = Mockito.spy(pokerGame);
+        mockPokerGame.actor = creator;
+        mockPokerGame.pots.clear();
+
+        mockPokerGame.contributePot(BigInteger.valueOf(10));
+        assertEquals(1, mockPokerGame.pots.size());
+        assertEquals(BigInteger.valueOf(10), mockPokerGame.pots.get(0).getPotSize());
+    }
+
+
+    @Test
+    void Should_NotCreateSplitPot_If_NoPlayerIsPartialAllIn() {
+        PokerGame mockPokerGame = Mockito.spy(pokerGame);
+        Pot mockPot = Mockito.mock(Pot.class);
+        when(mockPot.getAllInPlayerWithSmallestStack()).thenReturn(null);
+        mockPokerGame.pots.add(mockPot);
+
+        assertEquals(1, mockPokerGame.pots.size());
+        mockPokerGame.checkForSplitPots();
+        assertEquals(1, mockPokerGame.pots.size());
     }
 
     @Test
-    public void Should_GetNextActivePlayer_If_NotFoldedOrAllIn() throws Exception {
-        pokerGame.state = PokerGame.State.PRE_FLOP;
-        pokerGame.addPlayer(new PokerPlayer("Small Blind"));
-        pokerGame.addPlayer(new PokerPlayer("Big Blind"));
+    void Should_CreateSplitPot_If_PlayerIsPartialAllIn() {
+        PokerGame mockPokerGame = Mockito.spy(pokerGame);
+        Pot mockPot = Mockito.mock(Pot.class);
+        Pot mockSplitPot = Mockito.mock(Pot.class);
+        when(mockPot.getAllInPlayerWithSmallestStack()).thenReturn(player1);
+        when(mockSplitPot.getAllInPlayerWithSmallestStack()).thenReturn(null);
+        when(mockPot.split(player1)).thenReturn(mockSplitPot);
 
-        // Set the active player to the first player (Creator)
-        PokerPlayer currentPlayer = (PokerPlayer) pokerGame.getPlayerList().get(0);
-        pokerGame.activePlayer = currentPlayer;
+        mockPokerGame.pots.add(mockPot);
 
-
-        pokerGame.setNextActivePlayer(currentPlayer);
-
-        // Verify that the next eligible player is selected (Player 2)
-        assertEquals(pokerGame.getPlayerList().get(1), pokerGame.getActivePlayer());
+        assertEquals(1, mockPokerGame.pots.size());
+        mockPokerGame.checkForSplitPots();
+        assertEquals(2, mockPokerGame.pots.size());
     }
 
     @Test
-    public void Should_GetNextActivePlayer_If_NextPlayerIsFolded() throws Exception {
-        pokerGame.state = PokerGame.State.PRE_FLOP;
-        pokerGame.addPlayer(new PokerPlayer("Small Blind"));
-        pokerGame.addPlayer(new PokerPlayer("Big Blind"));
+    void Should_CreateMultipleSplitPots() {
+        PokerGame mockPokerGame = Mockito.spy(pokerGame);
+        Pot mockPot = Mockito.mock(Pot.class);
+        Pot mockSplitPot = Mockito.mock(Pot.class);
+        Pot mockSplitPot2 = Mockito.mock(Pot.class);
+        when(mockPot.getAllInPlayerWithSmallestStack()).thenReturn(player1);
+        when(mockSplitPot.getAllInPlayerWithSmallestStack()).thenReturn(player2);
+        when(mockSplitPot2.getAllInPlayerWithSmallestStack()).thenReturn(null);
+        when(mockPot.split(player1)).thenReturn(mockSplitPot);
+        when(mockSplitPot.split(player2)).thenReturn(mockSplitPot2);
 
-        // Set the active player to the first player (Player 1)
-        PokerPlayer currentPlayer = (PokerPlayer) pokerGame.getPlayerList().get(0);
-        pokerGame.activePlayer = currentPlayer;
+        mockPokerGame.pots.add(mockPot);
 
-        // fold next player
-        ((PokerPlayer) pokerGame.getPlayerList().get(1)).fold();
-
-        pokerGame.setNextActivePlayer(currentPlayer);
-
-        // Verify that the next eligible player is selected (Player 2)
-        assertEquals(pokerGame.getPlayerList().get(2), pokerGame.getActivePlayer());
+        assertEquals(1, mockPokerGame.pots.size());
+        mockPokerGame.checkForSplitPots();
+        assertEquals(3, mockPokerGame.pots.size());
     }
 
     @Test
-    public void Should_KeepActivePlayer_If_NoEligiblePlayerLeft() throws Exception {
-        pokerGame.state = PokerGame.State.PRE_FLOP;
-        pokerGame.addPlayer(new PokerPlayer("Small Blind"));
-        pokerGame.addPlayer(new PokerPlayer("Big Blind"));
-
-        // Set the active player to the first player (Player 1)
-        PokerPlayer currentPlayer = (PokerPlayer) pokerGame.getPlayerList().get(0);
-        pokerGame.activePlayer = currentPlayer;
-
-        // Mark all players as folded except the current player
-        pokerGame.getPlayerList().forEach(player -> {
-            if (player != currentPlayer) {
-                ((PokerPlayer) player).fold();
-            }
-        });
-
-        pokerGame.setNextActivePlayer(currentPlayer);
-
-        // Verify that there are no eligible players left, so the active player remains the same
-        assertEquals(currentPlayer, pokerGame.getActivePlayer());
+    void Should_ThrowException_If_BlindIsRaisedDuringRound() {
+        PokerGame mockPokerGame = Mockito.spy(pokerGame);
+        mockPokerGame.bettingRound = BettingRound.PRE_FLOP;
+        assertThrows(GameActionException.class, mockPokerGame::raiseBlinds);
     }
 
     @Test
-    void Should_SetTheBlindsToNextEligiblePlayer() throws Exception {
-        PokerPlayer smallBlind = new PokerPlayer("Small Blind");
-        PokerPlayer bigBlind = new PokerPlayer("Big Blind");
-        pokerGame.addPlayer(smallBlind);
-        pokerGame.addPlayer(bigBlind);
-        pokerGame.setNextBlinds(smallBlind);
+    void Should_RaiseBlindLevel_If_BlindLimitNotReached() throws GameActionException {
+        PokerGame mockPokerGame = Mockito.spy(pokerGame);
+        mockPokerGame.bettingRound = BettingRound.NONE;
+        mockPokerGame.currentBlindLevel = 0;
+        mockPokerGame.smallBlindLevels = List.of(new BigInteger[]{BigInteger.valueOf(10), BigInteger.valueOf(20)});
+        mockPokerGame.raiseBlinds();
 
-        // Small blind should move to big blind
-        assertEquals(bigBlind, pokerGame.getSmallBlindPlayer());
-
-        // Big Blind should move to dealer (if only 3 players in the game)
-        assertEquals(creator, pokerGame.getBigBlindPlayer());
+        assertEquals(1, mockPokerGame.currentBlindLevel);
     }
 
     @Test
-    void Should_SkipPlayersWithoutChips_If_BlindsAreSet() throws Exception {
-        PokerPlayer smallBlind = new PokerPlayer("Small Blind");
-        PokerPlayer bigBlind = new PokerPlayer("Big Blind");
-        pokerGame.addPlayer(smallBlind);
-        pokerGame.addPlayer(bigBlind);
-        pokerGame.addPlayer(new PokerPlayer("Player 3"));
-        pokerGame.getPlayerList().get(2).setChips(0);
-        pokerGame.setNextBlinds(smallBlind);
+    void Should_NotRaiseBlindLevel_If_BlindLimitReached() throws GameActionException {
+        PokerGame mockPokerGame = Mockito.spy(pokerGame);
+        mockPokerGame.bettingRound = BettingRound.NONE;
+        mockPokerGame.currentBlindLevel = 1;
+        mockPokerGame.smallBlindLevels = List.of(new BigInteger[]{BigInteger.valueOf(10), BigInteger.valueOf(20)});
+        mockPokerGame.raiseBlinds();
 
-        // Small blind should move to Player2 since big blind has no chips
-        assertEquals(pokerGame.getPlayerList().get(3), pokerGame.getSmallBlindPlayer());
-
-        // Big Blind should move to dealer (if only 3 players in the game)
-        assertEquals(creator, pokerGame.getBigBlindPlayer());
+        assertEquals(1, mockPokerGame.currentBlindLevel);
     }
 
     @Test
-    void Should_SetBigBlindToDealer_If_OnlyTwoPlayersLeft() throws Exception {
-        PokerPlayer smallBlind = new PokerPlayer("Small Blind");
-        PokerPlayer bigBlind = new PokerPlayer("Big Blind");
-        pokerGame.addPlayer(smallBlind);
-        pokerGame.addPlayer(bigBlind);
-        pokerGame.startGame();
-        pokerGame.getPlayerList().get(1).setChips(0);
-        pokerGame.flopCards = new ArrayList<>();
-        pokerGame.prepareNextRound();
+    void Should_RotateActorToNextPlayer() throws GameActionException {
+        PokerGame mockPokerGame = Mockito.spy(pokerGame);
+        mockPokerGame.bettingRound = BettingRound.PRE_FLOP;
+        mockPokerGame.actor = creator;
+        mockPokerGame.getPlayerList().add(player1);
+        when(player1.isFolded()).thenReturn(false);
+        when(player1.isSpectator()).thenReturn(false);
+        when(player1.isAllIn()).thenReturn(false);
 
-        assertEquals(creator, pokerGame.getBigBlindPlayer());
-        assertEquals(bigBlind, pokerGame.getSmallBlindPlayer());
-        assertEquals(bigBlind, pokerGame.getDealer());
-    }
+        mockPokerGame.rotateActor(false);
 
-    @Test
-    void Should_NotAllowCall_If_NotPlayersTurn() throws Exception {
-        PokerPlayer player1 = new PokerPlayer("Player 1");
-        pokerGame.addPlayer(player1);
-        pokerGame.activePlayer = pokerGame.getDealer();
-        assertThrows(IllegalGameActionException.class, () -> pokerGame.call(player1));
-    }
-
-    @Test
-    void Should_NotAllowCall_If_PlayerHasMatchedBet() throws Exception {
-        PokerPlayer player1 = new PokerPlayer("Player 1");
-        pokerGame.addPlayer(player1);
-        pokerGame.activePlayer = player1;
-        pokerGame.currentBet = 100;
-        player1.setCurrentBet(100);
-        assertThrows(GameActionException.class, () -> pokerGame.call(player1));
-    }
-
-    @Test
-    void Should_NotAllowCall_If_PlayerHasNoChipsToMatchBet() throws Exception {
-        PokerPlayer player1 = new PokerPlayer("Player 1");
-        pokerGame.addPlayer(player1);
-        pokerGame.activePlayer = player1;
-        pokerGame.currentBet = 100;
-        player1.setChips(90);
-        assertThrows(GameActionException.class, () -> pokerGame.call(player1));
-    }
-
-    @Test
-    void Should_AllowCall() throws Exception {
-        PokerPlayer player1 = new PokerPlayer("Player 1");
-        pokerGame.addPlayer(player1);
-        pokerGame.activePlayer = player1;
-        pokerGame.currentBet = 100;
-        player1.setChips(200);
-        pokerGame.call(player1);
-
-        assertEquals(100, player1.getCurrentBet());
-        assertEquals(100, player1.getChips());
-        assertEquals(100, pokerGame.getCurrentBet());
-        assertEquals(PokerPlayerAction.CALL, player1.getLastAction());
-    }
-
-    @Test
-    void Should_NotAllowCheck_If_NotPlayersTurn() throws Exception {
-        PokerPlayer player1 = new PokerPlayer("Player 1");
-        pokerGame.addPlayer(player1);
-        pokerGame.activePlayer = pokerGame.getDealer();
-        assertThrows(IllegalGameActionException.class, () -> pokerGame.check(player1));
-    }
-
-    @Test
-    void Should_NotAllowCheck_If_PlayerHasNotMatchedBet() throws Exception {
-        PokerPlayer player1 = new PokerPlayer("Player 1");
-        pokerGame.addPlayer(player1);
-        pokerGame.activePlayer = player1;
-        pokerGame.currentBet = 100;
-        player1.setCurrentBet(90);
-        assertThrows(GameActionException.class, () -> pokerGame.check(player1));
-    }
-
-    @Test
-    void Should_AllowCheck() throws Exception {
-        PokerPlayer player1 = new PokerPlayer("Player 1");
-        pokerGame.addPlayer(player1);
-        pokerGame.activePlayer = player1;
-        pokerGame.currentBet = 100;
-        player1.setCurrentBet(100);
-        pokerGame.check(player1);
-
-        assertEquals(PokerPlayerAction.CHECK, player1.getLastAction());
-    }
-
-    @Test
-    void Should_NotAllowRaise_If_NotPlayersTurn() throws Exception {
-        PokerPlayer player1 = new PokerPlayer("Player 1");
-        pokerGame.addPlayer(player1);
-        pokerGame.activePlayer = pokerGame.getDealer();
-        assertThrows(IllegalGameActionException.class, () -> pokerGame.raise(player1, 100));
-    }
-
-    @Test
-    void Should_NotAllowRaise_If_RaiseLowerThatCurrentBetPlusSmallBlind() throws Exception {
-        PokerPlayer player1 = new PokerPlayer("Player 1");
-        pokerGame.addPlayer(player1);
-        pokerGame.activePlayer = player1;
-        pokerGame.smallBlindLevels = Arrays.asList(10, 20, 30);
-        pokerGame.currentBet = 100;
-        assertThrows(GameActionException.class, () -> pokerGame.raise(player1, 100));
-    }
-
-    @Test
-    void Should_NotAllowRaise_If_PlayerHasNotEnoughChips() throws Exception {
-        PokerPlayer player1 = new PokerPlayer("Player 1");
-        pokerGame.addPlayer(player1);
-        pokerGame.activePlayer = player1;
-        pokerGame.smallBlindLevels = Arrays.asList(10, 20, 30);
-        pokerGame.currentBet = 100;
-        assertThrows(GameActionException.class, () -> pokerGame.raise(player1, 2000));
-    }
-
-    @Test
-    void Should_AllowRaise() throws Exception {
-        PokerPlayer player1 = new PokerPlayer("Player 1");
-        pokerGame.addPlayer(player1);
-        pokerGame.activePlayer = player1;
-        pokerGame.currentBet = 100;
-        pokerGame.smallBlindLevels = Arrays.asList(10, 20, 30);
-        player1.setChips(910);
-        player1.setCurrentBet(90);
-        pokerGame.raise(player1, 50);
-
-        assertEquals(PokerPlayerAction.RAISE, player1.getLastAction());
-        assertEquals(150, pokerGame.getCurrentBet());
-        assertEquals(850, player1.getChips());
-    }
-
-    @Test
-    void Should_NotAllowFold_If_NotPlayersTurn() throws Exception {
-        PokerPlayer player1 = new PokerPlayer("Player 1");
-        pokerGame.addPlayer(player1);
-        pokerGame.activePlayer = pokerGame.getDealer();
-        assertThrows(IllegalGameActionException.class, () -> pokerGame.fold(player1));
-    }
-
-    @Test
-    void Should_AllowFold() throws Exception {
-        PokerPlayer player1 = new PokerPlayer("Player 1");
-        pokerGame.addPlayer(player1);
-        pokerGame.activePlayer = player1;
-
-        pokerGame.fold(player1);
-        assertEquals(PokerPlayerAction.FOLD, player1.getLastAction());
-        assertTrue(player1.isFolded());
-    }
-
-    @Test
-    void Should_StartFlopRound_If_StateIsPreFlop() {
-        pokerGame.dealer = (PokerPlayer) pokerGame.getPlayerList().get(0);
-        pokerGame.state = PokerGame.State.PRE_FLOP;
-
-        pokerGame.startNextRound();
-
-        assertEquals(PokerGame.State.FLOP, pokerGame.getState());
-        assertNotNull(pokerGame.getFlopCards());
-        // burn 1 card and deal 3 cards
-        assertEquals(48, pokerGame.getDeck().size());
-        assertEquals(3, pokerGame.getFlopCards().size());
-        assertEquals(pokerGame.getDealer(), pokerGame.getActivePlayer());
-    }
-
-    @Test
-    void Should_StartTurnRound_If_StateIsFlop() {
-        pokerGame.dealer = (PokerPlayer) pokerGame.getPlayerList().get(0);
-        pokerGame.state = PokerGame.State.FLOP;
-
-        pokerGame.startNextRound();
-
-        assertEquals(PokerGame.State.TURN, pokerGame.getState());
-        assertNotNull(pokerGame.getTurnCard());
-        // burn 1 card and deal 1 card
-        assertEquals(50, pokerGame.getDeck().size());
-        assertEquals(pokerGame.getDealer(), pokerGame.getActivePlayer());
-    }
-
-    @Test
-    void Should_StartRiverRound_If_StateIsTurn() {
-        pokerGame.dealer = (PokerPlayer) pokerGame.getPlayerList().get(0);
-        pokerGame.state = PokerGame.State.TURN;
-
-        pokerGame.startNextRound();
-
-        assertEquals(PokerGame.State.RIVER, pokerGame.getState());
-        assertNotNull(pokerGame.getRiverCard());
-        // burn 1 card and deal 1 card
-        assertEquals(50, pokerGame.getDeck().size());
-        assertEquals(pokerGame.getDealer(), pokerGame.getActivePlayer());
-    }
-
-    @Test
-    void Should_EndRound_If_StateIsRiver() {
-        PokerGame spyGame = Mockito.spy(pokerGame);
-        spyGame.dealer = (PokerPlayer) pokerGame.getPlayerList().get(0);
-        spyGame.state = PokerGame.State.RIVER;
-
-        doNothing().when(spyGame).evaluateHands();
-        spyGame.startNextRound();
-
-        assertEquals(PokerGame.State.END, spyGame.getState());
-        verify(spyGame, times(1)).evaluateHands();
-    }
-
-    @Test
-    void Should_StartNextRound_If_RoundCanEnd() {
-        PokerGame spyGame = Mockito.spy(pokerGame);
-        doReturn(true).when(spyGame).canRoundEnd();
-        doNothing().when(spyGame).startNextRound();
-        spyGame.manageRoundEnd();
-
-        verify(spyGame, times(1)).startNextRound();
-    }
-
-    @Test
-    void Should_SetNextActivePlayer_If_RoundCanNotEnd() {
-        PokerGame spyGame = Mockito.spy(pokerGame);
-        doReturn(false).when(spyGame).canRoundEnd();
-        doNothing().when(spyGame).setNextActivePlayer(any());
-        spyGame.manageRoundEnd();
-
-        verify(spyGame, times(1)).setNextActivePlayer(any());
-    }
-
-    @Test
-    void Should_NotPrepareNextRound_If_LessThanTwoPlayersLeft() throws Exception {
-        PokerPlayer player1 = new PokerPlayer("Player 1");
-        pokerGame.addPlayer(player1);
-        pokerGame.riverCard = new Card(Rank.ACE, Suit.CLUBS);
-        player1.setChips(0);
-
-        pokerGame.prepareNextRound();
-        assertNotNull(pokerGame.getRiverCard());
-        assertEquals(GameStatus.FINISHED, pokerGame.getGameStatus());
-    }
-
-    @Test
-    void Should_PrepareNextRound() throws Exception {
-        PokerGame spyGame = Mockito.spy(pokerGame);
-        PokerPlayer player1 = new PokerPlayer("Player 1");
-        spyGame.addPlayer(player1);
-        spyGame.dealer = (PokerPlayer) spyGame.getPlayerList().get(0);
-        spyGame.bigBlindPlayer = spyGame.getDealer();
-        spyGame.smallBlindPlayer = player1;
-        spyGame.flopCards = new ArrayList<>(List.of(new Card(Rank.ACE, Suit.CLUBS), new Card(Rank.KING, Suit.CLUBS),
-                new Card(Rank.QUEEN, Suit.CLUBS)));
-        spyGame.turnCard = new Card(Rank.JACK, Suit.CLUBS);
-        spyGame.riverCard = new Card(Rank.TEN, Suit.CLUBS);
-        doNothing().when(spyGame).setNextBlinds(spyGame.smallBlindPlayer);
-        doNothing().when(spyGame).setNextDealer(spyGame.dealer);
-
-        spyGame.prepareNextRound();
-
-        verify(spyGame, times(1)).setNextBlinds(spyGame.smallBlindPlayer);
-        verify(spyGame, times(1)).setNextDealer(spyGame.dealer);
-        assertTrue(spyGame.getFlopCards().isEmpty());
-        assertNull(spyGame.getRiverCard());
-        assertNull(spyGame.getTurnCard());
-        assertEquals(spyGame.smallBlindPlayer, spyGame.getActivePlayer());
-    }
-
-    @Test
-    void Should_AssignHandScoreToPlayer() throws Exception {
-        // Create a mocked factory and hand evaluator
-        ClassFactory<PokerHandEvaluator> mockedFactory = mock(ClassFactory.class);
-        PokerHandEvaluator handEvaluator = mock(PokerHandEvaluator.class);
-        when(handEvaluator.bestHand()).thenReturn(100);
-        doReturn(handEvaluator).when(mockedFactory).createInstance(any(), any(), any(), any(), any(), any(), any());
-
-        // Create a player with known hands
-        PokerPlayer player1 = new PokerPlayer("Player 1");
-
-        // Create the PokerGame with the mocked factory
-        pokerGame = new PokerGame(creator, 1000, settings);
-        pokerGame.evaluatorFactory = mockedFactory;
-        pokerGame.getPlayerList().remove(0);
-        pokerGame.state = PokerGame.State.END;
-
-        // Add the player to the game
-        pokerGame.addPlayer(player1);
-        player1.setHand(List.of(new Card(Rank.ACE, Suit.CLUBS), new Card(Rank.KING, Suit.DIAMONDS)));
-
-        // Set the flop, turn, and river cards
-        pokerGame.flopCards = List.of(new Card(Rank.QUEEN, Suit.CLUBS), new Card(Rank.JACK, Suit.CLUBS), new Card(Rank.NINE, Suit.CLUBS));
-        pokerGame.turnCard = new Card(Rank.EIGHT, Suit.DIAMONDS);
-        pokerGame.riverCard = new Card(Rank.SEVEN, Suit.HEARTS);
-
-        // Call evaluateHands
-        pokerGame.evaluateHands();
-
-        // Assert that the hand scores are calculated correctly
-        assertEquals(100, ((PokerPlayer)pokerGame.getPlayerList().get(0)).getHandScore());
+        assertEquals(player1, mockPokerGame.actor);
 
     }
 
     @Test
-    void Should_EndRoundAndSetHandScore_If_OnlyOnePlayerNotFolded() throws Exception {
-        pokerGame.getPlayerList().remove(0);
-        PokerPlayer player1 = mock(PokerPlayer.class);
-        PokerPlayer player2 = mock(PokerPlayer.class);
-        PokerPlayer player3 = mock(PokerPlayer.class);
+    void Should_SkipPlayerOnRotation_If_PlayerIsFolded() throws GameActionException {
+        PokerGame mockPokerGame = Mockito.spy(pokerGame);
+        mockPokerGame.bettingRound = BettingRound.PRE_FLOP;
+        mockPokerGame.actor = creator;
+        mockPokerGame.getPlayerList().add(player1);
+        mockPokerGame.getPlayerList().add(player2);
         when(player1.isFolded()).thenReturn(true);
-        when(player2.isFolded()).thenReturn(true);
-        when(player3.isFolded()).thenReturn(false);
+        when(player1.isSpectator()).thenReturn(false);
+        when(player1.isAllIn()).thenReturn(false);
+        when(player2.isFolded()).thenReturn(false);
+        when(player2.isSpectator()).thenReturn(false);
+        when(player2.isAllIn()).thenReturn(false);
 
+        mockPokerGame.rotateActor(false);
 
-        pokerGame.addPlayer(player1);
-        pokerGame.addPlayer(player2);
-        pokerGame.addPlayer(player3);
-
-        assertTrue(pokerGame.canRoundEnd());
-
-        // Ensure that the round ends and the hand score is set
-        assertEquals(PokerGame.State.END, pokerGame.getState());
-        verify(player3).setHandScore(1000);
+        assertEquals(player2, mockPokerGame.actor);
     }
 
     @Test
-    void Should_EndRound_If_StateIsPreFlopAndItsBigBlindTurnAndAllPlayersHaveCalledOrFolded() throws Exception {
-        pokerGame.getPlayerList().remove(0);
-        PokerPlayer player1 = mock(PokerPlayer.class);
-        PokerPlayer player2 = mock(PokerPlayer.class);
-        PokerPlayer player3 = mock(PokerPlayer.class);
-
+    void Should_ResetAllowedActionsOnRotation() throws GameActionException {
+        PokerGame mockPokerGame = Mockito.spy(pokerGame);
+        mockPokerGame.bettingRound = BettingRound.PRE_FLOP;
+        creator.addAllowedAction(PokerPlayerAction.CHECK);
+        mockPokerGame.actor = creator;
+        mockPokerGame.getPlayerList().add(player1);
         when(player1.isFolded()).thenReturn(false);
-        when(player2.isFolded()).thenReturn(false);
-        when(player3.isFolded()).thenReturn(true);
+        when(player1.isSpectator()).thenReturn(false);
+        when(player1.isAllIn()).thenReturn(false);
 
-        when(player1.getCurrentBet()).thenReturn(100);
-        when(player2.getCurrentBet()).thenReturn(100);
-        when(player3.getCurrentBet()).thenReturn(0);
+        mockPokerGame.rotateActor(false);
 
-
-        pokerGame.addPlayer(player1);
-        pokerGame.addPlayer(player2);
-        pokerGame.addPlayer(player3);
-
-        pokerGame.state = PokerGame.State.PRE_FLOP;
-        pokerGame.activePlayer = player1;
-        pokerGame.bigBlindPlayer = player1;
-        pokerGame.currentBet = 100;
-
-        assertTrue(pokerGame.canRoundEnd());
-        assertEquals(PokerGame.State.PRE_FLOP, pokerGame.getState());
+        assertEquals(0, creator.getAllowedActions().size());
     }
 
     @Test
-    void Should_NotEndRound_If_StateIsPreFlopAndItsBigBlindTurnWithRemainingPlayers() throws Exception {
-        pokerGame.getPlayerList().remove(0);
-        PokerPlayer player1 = mock(PokerPlayer.class);
-        PokerPlayer player2 = mock(PokerPlayer.class);
-        PokerPlayer player3 = mock(PokerPlayer.class);
-        when(player1.getCurrentBet()).thenReturn(150);
-        when(player2.getCurrentBet()).thenReturn(100);
+    void Should_SetAllowedActionsOnRotation_If_Requested() throws GameActionException {
+        PokerGame mockPokerGame = Mockito.spy(pokerGame);
+        mockPokerGame.bettingRound = BettingRound.PRE_FLOP;
+        mockPokerGame.actor = creator;
+        mockPokerGame.getPlayerList().add(player1);
         when(player1.isFolded()).thenReturn(false);
-        when(player2.isFolded()).thenReturn(false);
-        when(player3.isFolded()).thenReturn(true);
+        when(player1.isSpectator()).thenReturn(false);
+        when(player1.isAllIn()).thenReturn(false);
+        doNothing().when(mockPokerGame).setAllowedActions();
 
+        mockPokerGame.rotateActor(true);
 
-        pokerGame.addPlayer(player1);
-        pokerGame.addPlayer(player2);
-        pokerGame.addPlayer(player3);
-        pokerGame.state = PokerGame.State.PRE_FLOP;
-        pokerGame.activePlayer = player1;
-        pokerGame.bigBlindPlayer = player1;
-        pokerGame.currentBet = 100;
-
-        assertFalse(pokerGame.canRoundEnd());
+        verify(mockPokerGame, times(1)).setAllowedActions();
     }
 
     @Test
-    void Should_EndRound_If_StateIsNotPreFlopAndItsDealersTurnAndAllPlayersHaveCalledOrFolded() throws Exception {
-        pokerGame.getPlayerList().remove(0);
-        PokerPlayer player1 = mock(PokerPlayer.class);
-        PokerPlayer player2 = mock(PokerPlayer.class);
-        PokerPlayer player3 = mock(PokerPlayer.class);
+    void Should_AutomaticallyCheck_If_ActorIsAllIn() throws GameActionException {
+        PokerGame mockPokerGame = Mockito.spy(pokerGame);
+        mockPokerGame.actor = creator;
+        when(creator.getLastAction()).thenReturn(PokerPlayerAction.ALL_IN);
+        doNothing().when(mockPokerGame).check(creator);
+        doNothing().when(mockPokerGame).notifyPlayers(ClientOperation.PLAYER_ACTION);
 
-        when(player1.isFolded()).thenReturn(false);
-        when(player2.isFolded()).thenReturn(false);
-        when(player3.isFolded()).thenReturn(true);
+        mockPokerGame.setAllowedActions();
 
-        when(player1.getCurrentBet()).thenReturn(100);
-        when(player2.getCurrentBet()).thenReturn(100);
-        when(player3.getCurrentBet()).thenReturn(0);
-
-
-        pokerGame.addPlayer(player1);
-        pokerGame.addPlayer(player2);
-        pokerGame.addPlayer(player3);
-
-        pokerGame.state = PokerGame.State.TURN;
-        pokerGame.activePlayer = player1;
-        pokerGame.dealer = player1;
-        pokerGame.currentBet = 100;
-
-        assertTrue(pokerGame.canRoundEnd());
-        assertEquals(PokerGame.State.TURN, pokerGame.getState());
+        verify(mockPokerGame, times(1)).check(creator);
+        verify(mockPokerGame, times(1)).notifyPlayers(ClientOperation.PLAYER_ACTION);
+        assertEquals(0, creator.getAllowedActions().size());
     }
 
     @Test
-    void Should_NotEndRound_If_StateIsNotPreFlopAndItsDealersTurnWithRemainingPlayers() throws Exception {
-        pokerGame.getPlayerList().remove(0);
-        PokerPlayer player1 = mock(PokerPlayer.class);
-        PokerPlayer player2 = mock(PokerPlayer.class);
-        PokerPlayer player3 = mock(PokerPlayer.class);
-        when(player1.getCurrentBet()).thenReturn(100);
-        when(player2.getCurrentBet()).thenReturn(150);
-        when(player1.isFolded()).thenReturn(false);
-        when(player2.isFolded()).thenReturn(false);
-        when(player3.isFolded()).thenReturn(true);
+    void Should_OnlyAddFoldAndAllIn_If_PlayerHasFewerChipsThanCurrentBet() throws GameActionException {
+        PokerGame mockPokerGame = Mockito.spy(pokerGame);
+        mockPokerGame.actor = creator;
+        mockPokerGame.currentBet = BigInteger.valueOf(200);
+        mockPokerGame.smallBlindLevels = List.of(new BigInteger[]{BigInteger.valueOf(10), BigInteger.valueOf(20)});
 
+        when(creator.getChips()).thenReturn(BigInteger.valueOf(100));
+        when(creator.getCurrentBet()).thenReturn(BigInteger.valueOf(0));
+        when(creator.getLastAction()).thenReturn(null);
 
-        pokerGame.addPlayer(player1);
-        pokerGame.addPlayer(player2);
-        pokerGame.addPlayer(player3);
-        pokerGame.state = PokerGame.State.TURN;
-        pokerGame.activePlayer = player1;
-        pokerGame.dealer = player1;
-        pokerGame.currentBet = 100;
+        mockPokerGame.setAllowedActions();
 
-        assertFalse(pokerGame.canRoundEnd());
+        verify(creator, times(1)).addAllowedAction(PokerPlayerAction.FOLD);
+        verify(creator, times(1)).addAllowedAction(PokerPlayerAction.ALL_IN);
+        verify(creator, times(2)).addAllowedAction(any());
+    }
+
+    @Test
+    void Should_AllowCheck_If_PlayerHasMatchedCurrentBet() throws GameActionException {
+        PokerGame mockPokerGame = Mockito.spy(pokerGame);
+        mockPokerGame.actor = creator;
+        mockPokerGame.currentBet = BigInteger.valueOf(200);
+        mockPokerGame.smallBlindLevels = List.of(new BigInteger[]{BigInteger.valueOf(10), BigInteger.valueOf(20)});
+
+        when(creator.getChips()).thenReturn(BigInteger.valueOf(0));
+        when(creator.getCurrentBet()).thenReturn(BigInteger.valueOf(200));
+        when(creator.getLastAction()).thenReturn(null);
+
+        mockPokerGame.setAllowedActions();
+
+        verify(creator, times(1)).addAllowedAction(PokerPlayerAction.CHECK);
+        verify(creator, times(1)).addAllowedAction(PokerPlayerAction.FOLD);
+        verify(creator, times(2)).addAllowedAction(any());
+    }
+
+    @Test
+    void Should_AllowCheckAndAllIn_If_PlayerHasMatchedCurrentBetAndHasFewerChipsThanBigBlind() throws GameActionException {
+        PokerGame mockPokerGame = Mockito.spy(pokerGame);
+        mockPokerGame.actor = creator;
+        mockPokerGame.currentBet = BigInteger.valueOf(200);
+        mockPokerGame.smallBlindLevels = List.of(new BigInteger[]{BigInteger.valueOf(10), BigInteger.valueOf(20)});
+
+        when(creator.getChips()).thenReturn(BigInteger.valueOf(10));
+        when(creator.getCurrentBet()).thenReturn(BigInteger.valueOf(200));
+        when(creator.getLastAction()).thenReturn(null);
+
+        mockPokerGame.setAllowedActions();
+
+        verify(creator, times(1)).addAllowedAction(PokerPlayerAction.CHECK);
+        verify(creator, times(1)).addAllowedAction(PokerPlayerAction.FOLD);
+        verify(creator, times(1)).addAllowedAction(PokerPlayerAction.ALL_IN);
+        verify(creator, times(3)).addAllowedAction(any());
+    }
+
+    @Test
+    void Should_AllowCall_If_PlayerHasNotMatchedCurrentBetAndHasEnoughChipsToCall() throws GameActionException {
+        PokerGame mockPokerGame = Mockito.spy(pokerGame);
+        mockPokerGame.actor = creator;
+        mockPokerGame.currentBet = BigInteger.valueOf(200);
+        mockPokerGame.smallBlindLevels = List.of(new BigInteger[]{BigInteger.valueOf(10), BigInteger.valueOf(20)});
+
+        when(creator.getChips()).thenReturn(BigInteger.valueOf(100));
+        when(creator.getCurrentBet()).thenReturn(BigInteger.valueOf(100));
+        when(creator.getLastAction()).thenReturn(null);
+
+        mockPokerGame.setAllowedActions();
+
+        verify(creator, times(1)).addAllowedAction(PokerPlayerAction.CALL);
+        verify(creator, times(1)).addAllowedAction(PokerPlayerAction.FOLD);
+        verify(creator, times(1)).addAllowedAction(PokerPlayerAction.ALL_IN);
+        verify(creator, times(3)).addAllowedAction(any());
+    }
+
+    @Test
+    void Should_AllowRaise_If_PlayerHasMoreChipsThanHeNeedsToCallPlusBigBlind() throws GameActionException {
+        PokerGame mockPokerGame = Mockito.spy(pokerGame);
+        mockPokerGame.actor = creator;
+        mockPokerGame.currentBet = BigInteger.valueOf(200);
+        mockPokerGame.smallBlindLevels = List.of(new BigInteger[]{BigInteger.valueOf(10), BigInteger.valueOf(20)});
+
+        when(creator.getChips()).thenReturn(BigInteger.valueOf(300));
+        when(creator.getCurrentBet()).thenReturn(BigInteger.valueOf(100));
+        when(creator.getLastAction()).thenReturn(null);
+
+        mockPokerGame.setAllowedActions();
+
+        verify(creator, times(1)).addAllowedAction(PokerPlayerAction.CALL);
+        verify(creator, times(1)).addAllowedAction(PokerPlayerAction.FOLD);
+        verify(creator, times(1)).addAllowedAction(PokerPlayerAction.RAISE);
+        verify(creator, times(1)).addAllowedAction(PokerPlayerAction.ALL_IN);
+        verify(creator, times(4)).addAllowedAction(any());
+    }
+
+    @Test
+    void Should_NotAllowRaise_If_TableHasLimitAndLimitIsReached() throws GameActionException {
+        PokerGame mockPokerGame = Mockito.spy(pokerGame);
+        mockPokerGame.actor = creator;
+        mockPokerGame.currentBet = BigInteger.valueOf(200);
+        mockPokerGame.smallBlindLevels = List.of(new BigInteger[]{BigInteger.valueOf(10), BigInteger.valueOf(20)});
+
+        when(mockPokerGame.getTableType()).thenReturn(TableType.FIXED_LIMIT);
+        when(mockPokerGame.getRaises()).thenReturn(3);
+        when(creator.getChips()).thenReturn(BigInteger.valueOf(300));
+        when(creator.getCurrentBet()).thenReturn(BigInteger.valueOf(100));
+        when(creator.getLastAction()).thenReturn(null);
+
+        mockPokerGame.setAllowedActions();
+
+        verify(creator, times(1)).addAllowedAction(PokerPlayerAction.CALL);
+        verify(creator, times(1)).addAllowedAction(PokerPlayerAction.FOLD);
+        verify(creator, times(1)).addAllowedAction(PokerPlayerAction.ALL_IN);
+        verify(creator, times(3)).addAllowedAction(any());
+    }
+
+    @Test
+    void Should_SetNextDealer() {
+        PokerGame mockPokerGame = Mockito.spy(pokerGame);
+        mockPokerGame.getPlayerList().add(player1);
+        mockPokerGame.dealer = creator;
+        mockPokerGame.setNextDealer();
+
+        assertEquals(player1, mockPokerGame.dealer);
+        assertEquals(player1, mockPokerGame.actor);
+
     }
 
 
 
-}*/
+}

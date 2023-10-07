@@ -101,9 +101,16 @@ public class Pot {
         for (PokerPlayer player : contributions.keySet()) {
             if (player.equals(allInPlayerWithSmallestStack)) continue;
             BigInteger contribution = getPlayerContribution(player);
-            contributions.merge(player, allInContribution, BigInteger::subtract);
             BigInteger remainder = contribution.subtract(allInContribution);
+            // if the player has fewer chips in the pot than the allIn player (can happen if the player has folded),
+            // his contributions stays in this pot, and he is not added to the side pot
+            if (remainder.compareTo(BigInteger.ZERO) <= 0) continue;
+
+            contributions.merge(player, remainder, BigInteger::subtract);
+
             sidePot.addContributor(player, remainder);
+
+
         }
         return sidePot;
     }

@@ -158,22 +158,61 @@ class PotTest {
     @Test
     void Should_SplitPot() {
 
-        pot.addContributor(player1, BigInteger.valueOf(100));
+        pot.addContributor(player1, BigInteger.valueOf(60));
         pot.addContributor(player2, BigInteger.valueOf(200));
         pot.addContributor(player3, BigInteger.valueOf(200));
 
         Pot sidePot = pot.split(player1);
 
         // the old pot should have the allInPlayer's contribution from each player
-        assertEquals(BigInteger.valueOf(100), pot.getPlayerContribution(player1));
-        assertEquals(BigInteger.valueOf(100), pot.getPlayerContribution(player2));
-        assertEquals(BigInteger.valueOf(100), pot.getPlayerContribution(player3));
-        assertEquals(BigInteger.valueOf(300), pot.getPotSize());
+        assertEquals(BigInteger.valueOf(60), pot.getPlayerContribution(player1));
+        assertEquals(BigInteger.valueOf(60), pot.getPlayerContribution(player2));
+        assertEquals(BigInteger.valueOf(60), pot.getPlayerContribution(player3));
+        assertEquals(BigInteger.valueOf(180), pot.getPotSize());
 
         // the side pot should have the remaining contribution from each player and the allInPlayer should not be a contributor
         assertFalse(sidePot.contributions.containsKey(player1));
-        assertEquals(BigInteger.valueOf(100), sidePot.getPlayerContribution(player2));
-        assertEquals(BigInteger.valueOf(100), sidePot.getPlayerContribution(player3));
-        assertEquals(BigInteger.valueOf(200), sidePot.getPotSize());
+        assertEquals(BigInteger.valueOf(140), sidePot.getPlayerContribution(player2));
+        assertEquals(BigInteger.valueOf(140), sidePot.getPlayerContribution(player3));
+        assertEquals(BigInteger.valueOf(280), sidePot.getPotSize());
+    }
+
+    @Test
+    void Should_KeepLowerBalancesInMainPotOnSplit() {
+        pot.addContributor(player1, BigInteger.valueOf(50));
+        pot.addContributor(player2, BigInteger.valueOf(100));
+        pot.addContributor(player3, BigInteger.valueOf(60));
+
+        Pot sidePot = pot.split(player3);
+
+        // player 1 has lower balance than allInPlayer (can happen if he folds) and should not be added to the side pot
+        assertEquals(BigInteger.valueOf(50), pot.getPlayerContribution(player1));
+        assertEquals(BigInteger.valueOf(60), pot.getPlayerContribution(player2));
+        assertEquals(BigInteger.valueOf(60), pot.getPlayerContribution(player3));
+        assertEquals(BigInteger.valueOf(170), pot.getPotSize());
+
+        assertFalse(sidePot.contributions.containsKey(player1));
+        assertFalse(sidePot.contributions.containsKey(player3));
+        assertEquals(BigInteger.valueOf(40), sidePot.getPlayerContribution(player2));
+        assertEquals(BigInteger.valueOf(40), sidePot.getPotSize());
+    }
+
+    @Test
+    void Should_KeepSameBalanceInMainPotOnSplit() {
+        pot.addContributor(player1, BigInteger.valueOf(60));
+        pot.addContributor(player2, BigInteger.valueOf(100));
+        pot.addContributor(player3, BigInteger.valueOf(60));
+
+        Pot sidePot = pot.split(player3);
+
+        assertEquals(BigInteger.valueOf(60), pot.getPlayerContribution(player1));
+        assertEquals(BigInteger.valueOf(60), pot.getPlayerContribution(player2));
+        assertEquals(BigInteger.valueOf(60), pot.getPlayerContribution(player3));
+        assertEquals(BigInteger.valueOf(180), pot.getPotSize());
+
+        assertFalse(sidePot.contributions.containsKey(player1));
+        assertFalse(sidePot.contributions.containsKey(player3));
+        assertEquals(BigInteger.valueOf(40), sidePot.getPlayerContribution(player2));
+        assertEquals(BigInteger.valueOf(40), sidePot.getPotSize());
     }
 }

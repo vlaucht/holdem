@@ -33,7 +33,7 @@ public class PokerGame extends Game {
     private final PokerGameSettings settings;
 
     /** The maximum amount of players that can join the game */
-    private final int maxPlayerCount;
+    protected final int maxPlayerCount;
 
     /** amount of money a player has to pay when joining the game to buy chips for the game. */
     private final BigInteger buyIn;
@@ -42,10 +42,10 @@ public class PokerGame extends Game {
     private final TableType tableType;
 
     /** The current blind level */
-    private int currentBlindLevel;
+    protected int currentBlindLevel;
 
     /** A list of all small blind levels */
-    private List<BigInteger> smallBlindLevels;
+    protected List<BigInteger> smallBlindLevels;
 
     /** Stores the 3 flop cards (first 3 cards dealt on the table) */
     protected List<Card> flopCards;
@@ -60,7 +60,7 @@ public class PokerGame extends Game {
     protected BigInteger currentBet;
 
     /** All pots in the current hand (main pot and any side pots). */
-    private final List<Pot> pots;
+    protected final List<Pot> pots;
 
     /** Indicates in which round the game is currently in */
     protected BettingRound bettingRound;
@@ -157,7 +157,7 @@ public class PokerGame extends Game {
      */
     @Override
     public void addPlayer(Player player) throws Exception {
-        if (this.gameStatus.equals(GameStatus.IN_PROGRESS) || this.gameStatus.equals(GameStatus.FINISHED)) {
+        if (this.getGameStatus().equals(GameStatus.IN_PROGRESS) || this.getGameStatus().equals(GameStatus.FINISHED)) {
             throw new GameActionException("Game is already running");
         }
         if (playerList.contains(player) || playerList.size() >= maxPlayerCount) {
@@ -204,7 +204,7 @@ public class PokerGame extends Game {
      * The game will be set to PRE_FLOP.
      */
     public void deal() throws Exception {
-        if (!gameStatus.equals(GameStatus.IN_PROGRESS)) {
+        if (!getGameStatus().equals(GameStatus.IN_PROGRESS)) {
             throw new GameActionException("Game has not started yet.");
         }
         bettingRound = BettingRound.PRE_FLOP;
@@ -233,7 +233,7 @@ public class PokerGame extends Game {
     /**
      * Method to pay the small blind.
      */
-    private void paySmallBlind() throws ReflectiveOperationException, GameActionException {
+    void paySmallBlind() throws  GameActionException {
         rotateActor(false);
         smallBlindPlayer = actor;
         BigInteger smallBlind = smallBlindLevels.get(currentBlindLevel);
@@ -245,7 +245,7 @@ public class PokerGame extends Game {
     /**
      * Method to pay the big blind.
      */
-    private void payBigBlind() throws ReflectiveOperationException, GameActionException {
+    void payBigBlind() throws  GameActionException {
         rotateActor(false);
         bigBlindPlayer = actor;
         BigInteger bigBlind = smallBlindLevels.get(currentBlindLevel).multiply(BigInteger.TWO);
@@ -255,14 +255,14 @@ public class PokerGame extends Game {
         rotateActor(true);
     }
 
-    private void contributePot(BigInteger amount) {
+    void contributePot(BigInteger amount) {
         if (pots.isEmpty()) {
             pots.add(new Pot());
         }
         pots.get(pots.size() - 1).contribute(actor, amount);
     }
 
-    private void checkForSplitPots() {
+    void checkForSplitPots() {
         Pot currentPot = pots.get(pots.size() - 1);
         PokerPlayer allInPlayerWithSmallestStack = currentPot.getAllInPlayerWithSmallestStack();
         while (allInPlayerWithSmallestStack != null) {
@@ -284,7 +284,9 @@ public class PokerGame extends Game {
         if (bettingRound.isAfter(BettingRound.NONE) && bettingRound.isBefore(BettingRound.END)) {
             throw new GameActionException("Blinds can not be raised during a round.");
         }
-        currentBlindLevel++;
+        if (currentBlindLevel < smallBlindLevels.size() - 1) {
+            currentBlindLevel++;
+        }
     }
 
 
@@ -294,7 +296,7 @@ public class PokerGame extends Game {
      *
      * @param getAllowedActions if true, the allowed actions for the new actor will be set.
      */
-    void rotateActor(boolean getAllowedActions) throws ReflectiveOperationException, GameActionException {
+    void rotateActor(boolean getAllowedActions) throws  GameActionException {
         if(bettingRound == BettingRound.END) return;
         actor.clearAllowedActions();
         actor = (PokerPlayer) TurnManager.getNext(playerList, actor, true);
@@ -315,10 +317,10 @@ public class PokerGame extends Game {
      *     can not perform any illegal actions. If the actor is all in, he will automatically check.
      * </p>
      */
-    void setAllowedActions() throws ReflectiveOperationException, GameActionException {
+    void setAllowedActions() throws GameActionException {
         actor.clearAllowedActions();
         // actor will automatically check if he is all in
-        if (actor.getLastAction().equals(PokerPlayerAction.ALL_IN)) {
+        if (actor.getLastAction() != null && actor.getLastAction().equals(PokerPlayerAction.ALL_IN)) {
             check(actor);
             notifyPlayers(ClientOperation.PLAYER_ACTION);
             return;
@@ -341,7 +343,7 @@ public class PokerGame extends Game {
         if (chipsNeededToCall.equals(BigInteger.ZERO)) {
             actor.addAllowedAction(PokerPlayerAction.CHECK);
             //player can only all-in if he has fewer chips than big blind left
-            if (currentChips.compareTo(bigBlind) < 0) {
+            if (currentChips.compareTo(bigBlind) < 0 && currentChips.compareTo(BigInteger.ZERO) > 0) {
                 actor.addAllowedAction(PokerPlayerAction.ALL_IN);
                 return;
             }
@@ -351,20 +353,25 @@ public class PokerGame extends Game {
             actor.addAllowedAction(PokerPlayerAction.CALL);
         }
         // if player has more chips than he needs to call plus the big blind, he can raise
-        if (currentChips.compareTo(chipsNeededToCall.add(bigBlind)) > 0) {
+        if (currentChips.compareTo(chipsNeededToCall.add(bigBlind)) > 0 && (getTableType().equals(TableType.NO_LIMIT) || getRaises() < MAX_RAISES)) {
             actor.addAllowedAction(PokerPlayerAction.RAISE);
         }
-        // player can always all-in
-        actor.addAllowedAction(PokerPlayerAction.ALL_IN);
+        // player can always all-in if he has chips left
+        if (currentChips.compareTo(BigInteger.ZERO) > 0) {
+            actor.addAllowedAction(PokerPlayerAction.ALL_IN);
+        }
+
     }
 
     /**
      * Method to move the dealer to the next player if the round has ended
      *
-     * @param currentDealer the player who is currently the dealer
      */
-    public void setNextDealer(PokerPlayer currentDealer) {
-        dealer = (PokerPlayer) TurnManager.getNext(playerList, currentDealer, true);
+    public void setNextDealer() {
+        dealer = (PokerPlayer) TurnManager.getNext(playerList, dealer, true);
+        while (dealer.isSpectator()) {
+            dealer = (PokerPlayer) TurnManager.getNext(playerList, dealer, true);
+        }
         actor = dealer;
     }
 
@@ -403,7 +410,7 @@ public class PokerGame extends Game {
      *
      * @param player the player who is calling
      */
-    public void call(PokerPlayer player) throws GameActionException, ReflectiveOperationException {
+    public void call(PokerPlayer player) throws GameActionException {
         if (isIllegalAction(player, PokerPlayerAction.CALL)) {
             return;
         }
@@ -428,7 +435,7 @@ public class PokerGame extends Game {
      *     otherwise the next player will be set as active player.
      * </p>
      */
-    void manageBettingRound() throws ReflectiveOperationException, GameActionException {
+    void manageBettingRound() throws  GameActionException {
         if(canRoundEnd()) {
             startNextBettingRound();
         } else {
@@ -445,7 +452,7 @@ public class PokerGame extends Game {
      *
      * @param player the player who is checking
      */
-    public void check(PokerPlayer player) throws GameActionException, ReflectiveOperationException {
+    public void check(PokerPlayer player) throws GameActionException {
         if (isIllegalAction(player, PokerPlayerAction.CHECK)) {
             return;
         }
@@ -468,7 +475,7 @@ public class PokerGame extends Game {
      *
      * @param player the player that wants to fold
      */
-    public void fold(PokerPlayer player) throws GameActionException, ReflectiveOperationException {
+    public void fold(PokerPlayer player) throws GameActionException {
         if (isIllegalAction(player, PokerPlayerAction.FOLD)) {
             return;
         }
@@ -488,7 +495,7 @@ public class PokerGame extends Game {
      * @param player the player who is raising
      * @param raise the amount the player wants to raise
      */
-    public void raise(PokerPlayer player, BigInteger raise) throws GameActionException, ReflectiveOperationException {
+    public void raise(PokerPlayer player, BigInteger raise) throws GameActionException {
         if (isIllegalAction(player, PokerPlayerAction.RAISE)) {
             return;
         }
@@ -518,7 +525,7 @@ public class PokerGame extends Game {
      *
      * @param player the player who is going all-in.
      */
-    public void allIn(PokerPlayer player) throws GameActionException, ReflectiveOperationException {
+    public void allIn(PokerPlayer player) throws GameActionException {
         if (isIllegalAction(player, PokerPlayerAction.ALL_IN)) {
             return;
         }
@@ -587,9 +594,8 @@ public class PokerGame extends Game {
             gameStatus = GameStatus.FINISHED;
             return;
         }
-        setNextDealer(dealer);
-        actor = dealer;
         playerList.forEach(Player::reset);
+        setNextDealer();
         flopCards.clear();
         riverCard = null;
         lastBettor = null;
@@ -613,7 +619,7 @@ public class PokerGame extends Game {
      *     if current state is RIVER: state will be set to END, hands of all players will be evaluated
      * </p>
      */
-    void startNextBettingRound() throws ReflectiveOperationException, GameActionException {
+    void startNextBettingRound() throws GameActionException {
         switch (bettingRound) {
             case PRE_FLOP -> {
                 bettingRound = BettingRound.FLOP;
@@ -671,7 +677,7 @@ public class PokerGame extends Game {
         return totalPot;
     }
 
-    private List<PokerPlayer> determineShowdownOrder() throws ReflectiveOperationException, GameActionException {
+    private List<PokerPlayer> determineShowdownOrder() throws GameActionException {
         // Determine show order; start with all-in players...
         List<PokerPlayer> showingPlayers = new ArrayList<>();
         for (Player player : playerList) {
@@ -734,7 +740,7 @@ public class PokerGame extends Game {
     /**
      * Performs the showdown.
      */
-    private void doShowdown() throws ReflectiveOperationException, GameActionException {
+    private void doShowdown() throws  GameActionException {
         if(bettingRound != BettingRound.END) return;
         publishPlayerPrivateInfo = true;
         List<PokerPlayer> showingPlayers = determineShowdownOrder();
