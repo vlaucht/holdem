@@ -50,6 +50,10 @@ public abstract class Player {
         this.currentBet = BigInteger.ZERO;
     }
 
+    public void setCurrentBet(BigInteger amount) {
+        this.currentBet = amount;
+    }
+
 
     /**
      * Method to add chips to the players bankroll.

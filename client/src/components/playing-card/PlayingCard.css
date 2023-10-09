@@ -78,3 +78,27 @@
     background-color: #fff;
     transform: translateY(-50%);
 }
+
+
+/* Add elevation effect with a shadow */
+.elevated {
+    margin-bottom: 15px;
+    border: 2px solid #1e601e;
+    animation: glowing 4s infinite;
+    opacity: 0;
+}
+
+
+
+@keyframes glowing {
+    0% {
+        opacity: 0.8;
+    }
+    50% {
+        opacity: 1; /* Adjust the maximum opacity of the border glow */
+        box-shadow: 0 0 8px rgba(0, 255, 0, 0.8); /* Adjust the values for a stronger glow */
+    }
+    100% {
+        opacity: 0.8;
+    }
+}

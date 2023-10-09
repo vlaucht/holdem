@@ -95,8 +95,6 @@ public class PokerGameServiceImpl implements PokerGameService, GameListener {
                     default -> {
                     }
                 }
-                broadcastGameState(game, ClientOperation.PLAYER_ACTION);
-                onNotifyPlayers(game, ClientOperation.PLAYER_ACTION);
             } catch (Exception e) {
                 sendErrorMessage(playerId, getApiError(e));
             }
@@ -189,7 +187,7 @@ public class PokerGameServiceImpl implements PokerGameService, GameListener {
 
     public PokerGame getGame(String gameId) throws NotFoundException {
         if (!registry.containsGame(gameId)) {
-            throw new NotFoundException("Game not found");
+            throw new NotFoundException("Game not found.");
         }
         return registry.getGame(gameId);
     }

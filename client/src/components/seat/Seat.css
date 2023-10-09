@@ -1,7 +1,7 @@
 .seat-container {
     position: relative;
     width: 10vw;
-    height: 10vw;
+    height: 12vw;
 }
 .seat {
     top: 0
@@ -70,6 +70,7 @@
     font-weight: bold;
     text-align: center;
     display: flex;
+    flex-direction: column; /* Change flex direction to column */
     align-items: center;
     justify-content: center;
     bottom: 0;

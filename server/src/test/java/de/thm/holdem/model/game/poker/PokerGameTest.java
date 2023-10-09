@@ -14,6 +14,8 @@ import org.mockito.MockitoAnnotations;
 import java.math.BigInteger;
 import java.util.List;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -66,13 +68,25 @@ class PokerGameTest {
         mockPokerGame.addPlayer(player1);
         mockPokerGame.addPlayer(player2);
 
-        assertThrows(GameActionException.class, () -> mockPokerGame.addPlayer(player3));
+        GameActionException exception = assertThrows(GameActionException.class, () -> pokerGame.addPlayer(player1));
+
+        assertThat(
+                exception.getMessage(),
+                containsString("Player can not join this game.")
+        );
     }
 
     @Test
     void Should_ThrowException_If_PlayerJoinsTwice() throws Exception {
         pokerGame.addPlayer(player1);
-        assertThrows(GameActionException.class, () -> pokerGame.addPlayer(player1));
+
+        GameActionException exception = assertThrows(GameActionException.class, () -> pokerGame.addPlayer(player1));
+
+        assertThat(
+                exception.getMessage(),
+                containsString("Player can not join this game.")
+        );
+
     }
 
     @Test
@@ -90,7 +104,12 @@ class PokerGameTest {
         PokerGame mockPokerGame = Mockito.spy(pokerGame);
         when(mockPokerGame.getGameStatus()).thenReturn(GameStatus.IN_PROGRESS);
 
-        assertThrows(GameActionException.class, mockPokerGame::startGame);
+        GameActionException exception = assertThrows(GameActionException.class, mockPokerGame::startGame);
+
+        assertThat(
+                exception.getMessage(),
+                containsString("Game is already running.")
+        );
     }
 
     @Test
@@ -98,12 +117,22 @@ class PokerGameTest {
         PokerGame mockPokerGame = Mockito.spy(pokerGame);
         when(mockPokerGame.getGameStatus()).thenReturn(GameStatus.FINISHED);
 
-        assertThrows(GameActionException.class, mockPokerGame::startGame);
+        GameActionException exception = assertThrows(GameActionException.class, mockPokerGame::startGame);
+
+        assertThat(
+                exception.getMessage(),
+                containsString("Game is already running.")
+        );
     }
 
     @Test
     void Should_NotStartGame_If_LessThanTwoPlayersJoined() {
-        assertThrows(GameActionException.class, pokerGame::startGame);
+        GameActionException exception = assertThrows(GameActionException.class, pokerGame::startGame);
+
+        assertThat(
+                exception.getMessage(),
+                containsString("Not enough players to start the game.")
+        );
     }
 
     @Test
@@ -121,7 +150,12 @@ class PokerGameTest {
 
     @Test
     void Should_NotDeal_If_GameHasNotStarted() {
-        assertThrows(GameActionException.class, pokerGame::deal);
+        GameActionException exception = assertThrows(GameActionException.class, pokerGame::deal);
+
+        assertThat(
+                exception.getMessage(),
+                containsString("Game has not started yet.")
+        );
     }
 
     @Test
@@ -262,7 +296,13 @@ class PokerGameTest {
     void Should_ThrowException_If_BlindIsRaisedDuringRound() {
         PokerGame mockPokerGame = Mockito.spy(pokerGame);
         mockPokerGame.bettingRound = BettingRound.PRE_FLOP;
-        assertThrows(GameActionException.class, mockPokerGame::raiseBlinds);
+
+        GameActionException exception = assertThrows(GameActionException.class, mockPokerGame::raiseBlinds);
+
+        assertThat(
+                exception.getMessage(),
+                containsString("Blinds can not be raised during a round.")
+        );
     }
 
     @Test
@@ -495,6 +535,328 @@ class PokerGameTest {
         assertEquals(player1, mockPokerGame.actor);
 
     }
+
+    @Test
+    void Should_NotAllowAction_If_NotActorsTurn() {
+        PokerGame mockPokerGame = Mockito.spy(pokerGame);
+        mockPokerGame.actor = creator;
+        mockPokerGame.getPlayerList().add(player1);
+        mockPokerGame.actor = player1;
+
+
+        GameActionException exception = assertThrows(GameActionException.class, () ->
+                mockPokerGame.isIllegalAction(creator, PokerPlayerAction.CHECK));
+
+        assertThat(
+                exception.getMessage(),
+                containsString("It is not your turn.")
+        );
+    }
+
+    @Test
+    void Should_NotAllowAction_If_PlayerIsSpectator() {
+        PokerGame mockPokerGame = Mockito.spy(pokerGame);
+        mockPokerGame.actor = creator;
+        when(creator.isSpectator()).thenReturn(true);
+
+        GameActionException exception = assertThrows(GameActionException.class, () ->
+                mockPokerGame.isIllegalAction(creator, PokerPlayerAction.RAISE));
+
+        assertThat(
+                exception.getMessage(),
+                containsString("You are not allowed to participate in the game.")
+        );
+    }
+
+    @Test
+    void Should_NotAllowAction_If_ActionIsNotInAllowedList() {
+        PokerGame mockPokerGame = Mockito.spy(pokerGame);
+        mockPokerGame.actor = creator;
+        when(creator.canDoAction(PokerPlayerAction.CHECK)).thenReturn(false);
+        when(creator.isSpectator()).thenReturn(false);
+
+        GameActionException exception = assertThrows(GameActionException.class, () ->
+                mockPokerGame.isIllegalAction(creator, PokerPlayerAction.RAISE));
+
+        assertThat(
+                exception.getMessage(),
+                containsString("You are not allowed to perform this action.")
+        );
+
+    }
+
+    @Test
+    void Should_ReturnFalse_If_ActionIsNotIllegal() throws GameActionException {
+        PokerGame mockPokerGame = Mockito.spy(pokerGame);
+        mockPokerGame.actor = creator;
+        when(creator.canDoAction(PokerPlayerAction.CHECK)).thenReturn(true);
+        when(creator.isSpectator()).thenReturn(false);
+        assertFalse(mockPokerGame.isIllegalAction(creator, PokerPlayerAction.CHECK));
+    }
+
+    @Test
+    void Should_NotBeAbleToCall_If_PlayerHasNotEnoughChips() {
+        PokerGame mockPokerGame = Mockito.spy(pokerGame);
+        mockPokerGame.actor = creator;
+        mockPokerGame.currentBet = BigInteger.valueOf(200);
+        when(creator.canDoAction(PokerPlayerAction.CALL)).thenReturn(true);
+        when(creator.isSpectator()).thenReturn(false);
+        when(creator.getChips()).thenReturn(BigInteger.valueOf(100));
+        when(creator.getCurrentBet()).thenReturn(BigInteger.valueOf(0));
+
+        GameActionException exception = assertThrows(GameActionException.class, () -> mockPokerGame.call(creator));
+
+        assertThat(
+                exception.getMessage(),
+                containsString("You do not have enough chips to call.")
+        );
+    }
+
+    @Test
+    void Should_NotBeAbleToCall_If_BetAlreadyMatched() {
+        PokerGame mockPokerGame = Mockito.spy(pokerGame);
+        mockPokerGame.actor = creator;
+        mockPokerGame.currentBet = BigInteger.valueOf(200);
+        when(creator.canDoAction(PokerPlayerAction.CALL)).thenReturn(true);
+        when(creator.isSpectator()).thenReturn(false);
+        when(creator.getChips()).thenReturn(BigInteger.valueOf(100));
+        when(creator.getCurrentBet()).thenReturn(BigInteger.valueOf(200));
+
+
+        GameActionException exception = assertThrows(GameActionException.class, () -> mockPokerGame.call(creator));
+
+        assertThat(
+                exception.getMessage(),
+                containsString("You have already matched the bet.")
+        );
+    }
+
+    @Test
+    void Should_Call() throws GameActionException {
+        PokerGame mockPokerGame = Mockito.spy(pokerGame);
+        mockPokerGame.actor = creator;
+        mockPokerGame.currentBet = BigInteger.valueOf(200);
+        when(creator.canDoAction(PokerPlayerAction.CALL)).thenReturn(true);
+        when(creator.isSpectator()).thenReturn(false);
+        when(creator.getChips()).thenReturn(BigInteger.valueOf(200));
+        when(creator.getCurrentBet()).thenReturn(BigInteger.valueOf(100));
+
+        doNothing().when(creator).call(BigInteger.valueOf(100));
+        doNothing().when(mockPokerGame).contributePot(BigInteger.valueOf(100));
+        doNothing().when(mockPokerGame).manageBettingRound();
+
+        mockPokerGame.call(creator);
+
+        verify(creator, times(1)).call(BigInteger.valueOf(100));
+        verify(mockPokerGame, times(1)).contributePot(BigInteger.valueOf(100));
+        verify(mockPokerGame, times(1)).manageBettingRound();
+    }
+
+    @Test
+    void Should_RotateActor_If_RoundCanNotEnd() throws GameActionException {
+        PokerGame mockPokerGame = Mockito.spy(pokerGame);
+        mockPokerGame.actor = creator;
+        when(mockPokerGame.canRoundEnd()).thenReturn(false);
+        doNothing().when(mockPokerGame).rotateActor(true);
+
+        mockPokerGame.manageBettingRound();
+
+        verify(mockPokerGame, times(1)).rotateActor(true);
+    }
+
+    @Test
+    void Should_StartNewBettingRound_If_RoundCanEnd() throws GameActionException {
+        PokerGame mockPokerGame = Mockito.spy(pokerGame);
+        mockPokerGame.actor = creator;
+        when(mockPokerGame.canRoundEnd()).thenReturn(true);
+        doNothing().when(mockPokerGame).startNextBettingRound();
+
+        mockPokerGame.manageBettingRound();
+
+        verify(mockPokerGame, times(1)).startNextBettingRound();
+    }
+
+    @Test
+    void Should_NotAllowCheck_If_PlayerHasNotMatchedBet() {
+        PokerGame mockPokerGame = Mockito.spy(pokerGame);
+        mockPokerGame.actor = creator;
+        mockPokerGame.currentBet = BigInteger.valueOf(200);
+        when(creator.getCurrentBet()).thenReturn(BigInteger.valueOf(100));
+        when(creator.canDoAction(PokerPlayerAction.CHECK)).thenReturn(true);
+        when(creator.isSpectator()).thenReturn(false);
+
+        GameActionException exception = assertThrows(GameActionException.class, () -> mockPokerGame.check(creator));
+
+        assertThat(
+                exception.getMessage(),
+                containsString("Your current bet is too low to check.")
+        );
+
+
+    }
+
+    @Test
+    void Should_Check() throws GameActionException {
+        PokerGame mockPokerGame = Mockito.spy(pokerGame);
+        mockPokerGame.actor = creator;
+        mockPokerGame.currentBet = BigInteger.valueOf(200);
+        when(creator.getCurrentBet()).thenReturn(BigInteger.valueOf(200));
+        when(creator.canDoAction(PokerPlayerAction.CHECK)).thenReturn(true);
+        when(creator.isSpectator()).thenReturn(false);
+
+        doNothing().when(creator).check();
+        doNothing().when(mockPokerGame).manageBettingRound();
+        mockPokerGame.check(creator);
+
+        verify(creator, times(1)).check();
+        verify(mockPokerGame, times(1)).manageBettingRound();
+
+    }
+
+    @Test
+    void Should_Fold() throws GameActionException {
+        PokerGame mockPokerGame = Mockito.spy(pokerGame);
+        mockPokerGame.actor = creator;
+        mockPokerGame.activePlayers = 2;
+        when(creator.canDoAction(PokerPlayerAction.FOLD)).thenReturn(true);
+        when(creator.isSpectator()).thenReturn(false);
+
+        doNothing().when(creator).fold();
+        doNothing().when(mockPokerGame).manageBettingRound();
+        mockPokerGame.fold(creator);
+
+        verify(creator, times(1)).fold();
+        verify(mockPokerGame, times(1)).manageBettingRound();
+        assertEquals(1, mockPokerGame.activePlayers);
+    }
+
+    @Test
+    void Should_NotAllowRaise_If_FixedLimitReached() {
+        PokerGame mockPokerGame = Mockito.spy(pokerGame);
+        when(mockPokerGame.getTableType()).thenReturn(TableType.FIXED_LIMIT);
+        mockPokerGame.raises = 3;
+        mockPokerGame.actor = creator;
+        when(creator.canDoAction(PokerPlayerAction.RAISE)).thenReturn(true);
+        when(creator.isSpectator()).thenReturn(false);
+
+        GameActionException exception = assertThrows(GameActionException.class, () -> mockPokerGame.raise(creator, BigInteger.valueOf(100)));
+
+        assertThat(
+                exception.getMessage(),
+                containsString("Maximum number of raises reached for fixed limit.")
+        );
+    }
+
+    @Test
+    void Should_NotAllowRaiseWithLessThanBigBlind() {
+        PokerGame mockPokerGame = Mockito.spy(pokerGame);
+        when(mockPokerGame.getTableType()).thenReturn(TableType.FIXED_LIMIT);
+        mockPokerGame.smallBlindLevels = List.of(new BigInteger[]{BigInteger.valueOf(10), BigInteger.valueOf(20)});
+        mockPokerGame.actor = creator;
+        mockPokerGame.currentBlindLevel = 0;
+        mockPokerGame.currentBet = BigInteger.valueOf(10);
+        when(creator.getCurrentBet()).thenReturn(BigInteger.valueOf(10));
+        when(creator.canDoAction(PokerPlayerAction.RAISE)).thenReturn(true);
+        when(creator.isSpectator()).thenReturn(false);
+
+        GameActionException exception = assertThrows(GameActionException.class, () -> mockPokerGame.raise(creator, BigInteger.valueOf(10)));
+
+        assertThat(
+                exception.getMessage(),
+                containsString("Raise is not high enough.")
+        );
+    }
+
+    @Test
+    void Should_NotAllowRaise_If_PlayerDoesNotHaveEnoughChips() {
+        PokerGame mockPokerGame = Mockito.spy(pokerGame);
+        when(mockPokerGame.getTableType()).thenReturn(TableType.FIXED_LIMIT);
+        mockPokerGame.smallBlindLevels = List.of(new BigInteger[]{BigInteger.valueOf(10), BigInteger.valueOf(20)});
+        mockPokerGame.actor = creator;
+        mockPokerGame.currentBlindLevel = 0;
+        mockPokerGame.currentBet = BigInteger.valueOf(10);
+        when(creator.getCurrentBet()).thenReturn(BigInteger.valueOf(10));
+        when(creator.getChips()).thenReturn(BigInteger.valueOf(50));
+        when(creator.canDoAction(PokerPlayerAction.RAISE)).thenReturn(true);
+        when(creator.isSpectator()).thenReturn(false);
+
+        GameActionException exception = assertThrows(GameActionException.class, () -> mockPokerGame.raise(creator, BigInteger.valueOf(100)));
+
+        assertThat(
+                exception.getMessage(),
+                containsString("You do not have enough chips to raise.")
+        );
+    }
+
+    @Test
+    void Should_Raise() throws GameActionException {
+        PokerGame mockPokerGame = Mockito.spy(pokerGame);
+        when(mockPokerGame.getTableType()).thenReturn(TableType.FIXED_LIMIT);
+        mockPokerGame.smallBlindLevels = List.of(new BigInteger[]{BigInteger.valueOf(10), BigInteger.valueOf(20)});
+        mockPokerGame.actor = creator;
+        mockPokerGame.currentBlindLevel = 0;
+        mockPokerGame.currentBet = BigInteger.valueOf(10);
+        mockPokerGame.raises = 0;
+        mockPokerGame.lastBettor = null;
+        when(creator.getCurrentBet()).thenReturn(BigInteger.valueOf(10));
+        when(creator.getChips()).thenReturn(BigInteger.valueOf(100));
+        when(creator.canDoAction(PokerPlayerAction.RAISE)).thenReturn(true);
+        when(creator.isSpectator()).thenReturn(false);
+        doNothing().when(mockPokerGame).rotateActor(true);
+        doNothing().when(mockPokerGame).contributePot(BigInteger.valueOf(50));
+        doNothing().when(creator).bet(BigInteger.valueOf(50));
+
+        mockPokerGame.raise(creator, BigInteger.valueOf(50));
+
+        verify(mockPokerGame, times(1)).rotateActor(true);
+        verify(mockPokerGame, times(1)).contributePot(BigInteger.valueOf(50));
+        verify(creator, times(1)).bet(BigInteger.valueOf(50));
+        assertEquals(1, mockPokerGame.raises);
+        assertEquals(creator, mockPokerGame.lastBettor);
+    }
+
+    @Test
+    void Should_PerformAllIn() throws GameActionException {
+        PokerGame mockPokerGame = Mockito.spy(pokerGame);
+
+        mockPokerGame.actor = creator;
+        mockPokerGame.raises = 0;
+        mockPokerGame.currentBet = BigInteger.valueOf(20);
+        when(creator.getCurrentBet()).thenReturn(BigInteger.valueOf(100));
+        when(creator.getChips()).thenReturn(BigInteger.valueOf(100));
+        when(creator.canDoAction(PokerPlayerAction.ALL_IN)).thenReturn(true);
+        when(creator.isSpectator()).thenReturn(false);
+        doNothing().when(mockPokerGame).manageBettingRound();
+
+        mockPokerGame.allIn(creator);
+
+        verify(creator, times(1)).bet(BigInteger.valueOf(100));
+        verify(mockPokerGame, times(1)).contributePot(BigInteger.valueOf(100));
+        assertEquals(1, mockPokerGame.raises);
+        assertEquals(creator, mockPokerGame.lastBettor);
+        assertEquals(BigInteger.valueOf(100), mockPokerGame.currentBet);
+        verify(mockPokerGame, times(1)).manageBettingRound();
+        verify(creator, times(1)).setLastAction(PokerPlayerAction.ALL_IN);
+    }
+
+    @Test
+    void Should_KeepCurrentGameBet_If_AllInPlayerDoesPartialAllIn() throws GameActionException {
+        PokerGame mockPokerGame = Mockito.spy(pokerGame);
+
+        mockPokerGame.actor = creator;
+        mockPokerGame.currentBet = BigInteger.valueOf(50);
+        when(creator.getCurrentBet()).thenReturn(BigInteger.valueOf(20));
+        when(creator.getChips()).thenReturn(BigInteger.valueOf(100));
+        when(creator.canDoAction(PokerPlayerAction.ALL_IN)).thenReturn(true);
+        when(creator.isSpectator()).thenReturn(false);
+        doNothing().when(mockPokerGame).manageBettingRound();
+
+        mockPokerGame.allIn(creator);
+
+        assertEquals(BigInteger.valueOf(50), mockPokerGame.currentBet);
+    }
+
+
 
 
 

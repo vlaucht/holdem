@@ -8,6 +8,8 @@ import {useUser} from "../../hooks/user-provider/UserProvider";
 import "./PokerTable.css";
 import {animateBoardCardFly, animateSeatCardFly, toggleBoardCardVisibility, toggleHoleCardVisibility} from "./DealCard";
 import {PokerPlayerDto} from "../../models/PokerPlayerDto";
+import {Pots} from "./Pots";
+import {compareCards} from "../../models/CardDto";
 
 interface GameTableProps {
     game: PokerGameState;
@@ -104,17 +106,27 @@ export const PokerTable: React.FunctionComponent<GameTableProps> = ({ game, play
                     <Group>
                         {showBoardCards && (
                             <>
-                                {game.flopCards.map((card, index) => (
-                                    <PlayingCard className={`board-card${index}`}
-                                        key={index}
-                                        card={card}
-                                        ref={boardCardRefs[index]} // Use the appropriate ref for each flop card
-                                    />
-                                ))}
+                                {game.flopCards.map((card, index) => {
+                                        // Check if the card is in handCards and handResult is set
+                                        const isElevated = player && player.handResult && player.handResult.handCards.some(c => compareCards(c, card) === 1);
+
+                                        // Create a class string based on the condition
+                                        const cardClass = `board-card${index} ${isElevated ? 'elevated' : ''}`;
+                                    return(
+                                        <PlayingCard className={cardClass}
+                                                     key={index}
+                                                     card={card}
+                                                     ref={boardCardRefs[index]} // Use the appropriate ref for each flop card
+                                        />
+                                    )
+                                }
+
+                                )}
                                 <PlayingCard className={`board-card3`} key={"turnCard"} card={game.turnCard} ref={boardCardRefs[3]} />
                                 <PlayingCard className={`board-card4`} key={"riverCard"} card={game.riverCard} ref={boardCardRefs[4]} />
                             </>
                         )}
+                        {game.pots && <Pots pots={game.pots} />}
                     </Group>
                 </div>
                 {seats}

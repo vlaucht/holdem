@@ -1,7 +1,7 @@
 import React from "react";
 import './Seat.css';
 import { PlayingCard } from "../playing-card/PlayingCard";
-import { CardDto } from "../../models/CardDto";
+import {CardDto, compareCards} from "../../models/CardDto";
 import { PokerPlayerDto } from "../../models/PokerPlayerDto";
 import {useUser} from "../../hooks/user-provider/UserProvider";
 import {Actions} from "./Actions";
@@ -52,9 +52,15 @@ export const Seat: React.FunctionComponent<SeatProps> = ({ player, holeCards, ga
                 </div>
 
                 <div key={"hole-cards"} className="hole-cards">
-                    {holeCards &&  holeCards.map((card, index) => (
-                        <PlayingCard key={index} card={card} className={`hole-card${index+1}`}/>
-                    ))}
+                    {holeCards &&  holeCards.map((card, index) => {
+
+                        // Check if the card is in handCards and handResult is set
+                        const isElevated = player.handResult && player.handResult.handCards.some(c => compareCards(c, card) === 1);
+                        // Create a class string based on the condition
+                        const cardClass = `hole-card${index + 1} ${isElevated ? 'elevated' : ''}`;
+
+                        return(<PlayingCard key={index} card={card} className={cardClass} />)
+                    })}
                 </div>
                 <div className={player.isActor ? "active-border glow" : "active-border"}>
                 <div className="user-info">
@@ -66,6 +72,16 @@ export const Seat: React.FunctionComponent<SeatProps> = ({ player, holeCards, ga
                 </div>
                 <div className="action">
                     {player.lastAction && `${actionText[player.lastAction]}`} (${player.bet})
+                    {player.handResult && player.handResult.handType && (
+                        <>
+                            <br />
+                            <div style={{ color: 'grey'}}>
+                            {player.handResult.handType}
+                            </div>
+
+                        </>
+
+                    )}
                 </div>
                     {
                         (player.isActor && player.name == user.username) && (

@@ -23,6 +23,12 @@ public enum ClientOperation {
 
     PLAYER_ACTION("PLAYER_ACTION"),
 
+    ROUND_CHANGE("ROUND_CHANGE"),
+
+    SHOWDOWN("SHOWDOWN"),
+
+    PLAYER_WINS("PLAYER_WINS"),
+
     ;
 
     /** The operation that should be performed on the client side. */

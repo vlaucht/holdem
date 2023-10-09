@@ -102,7 +102,7 @@ public class PokerHand {
      *
      * @param allCardCombinations list of all possible 5 card combinations
      * @param currentCardList temporary currently being generated list
-     * @param allCards a list of the 7 cards
+     * @param allCards a list of up to 7 cards
      * @param n number of cards in list
      * @param k 5 (need to find 5 cards combination)
      * @param start index/pointer in input
@@ -210,7 +210,6 @@ public class PokerHand {
         }
         return new PokerHandResult(handType, new ArrayList<>(cardsToEvaluate), new ArrayList<>(handCards));
     }
-
 
     /**
      * Method to find the cards that make up one or two pairs.

@@ -37,6 +37,8 @@ public class PokerGameStateDto {
 
     private int currentBet;
 
+    private List<PokerPlayerStateDto> showdownOrder;
+
 
     public static PokerGameStateDto from(PokerGame game, ClientOperation operation) {
         PokerGameStateDto dto = new PokerGameStateDto();
@@ -60,6 +62,11 @@ public class PokerGameStateDto {
             } else {
                 dto.setFlopCards(game.getFlopCards().stream().map(card -> CardDto.from(card, true)).toList());
             }
+        }
+
+        if (operation == ClientOperation.SHOWDOWN) {
+            dto.setShowdownOrder(game.getShowdownOrder().stream().map(player ->
+                    PokerPlayerStateDto.from(player, game, player.mustShowCards())).toList());
         }
 
         return dto;
