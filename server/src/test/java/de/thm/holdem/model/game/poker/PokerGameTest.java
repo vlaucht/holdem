@@ -166,8 +166,8 @@ class PokerGameTest {
         mockPokerGame.addPlayer(player2);
         PokerHand mockHand = Mockito.mock(PokerHand.class);
         when(mockPokerGame.getGameStatus()).thenReturn(GameStatus.IN_PROGRESS);
-        doNothing().when(mockPokerGame).paySmallBlind();
-        doNothing().when(mockPokerGame).payBigBlind();
+        doNothing().when(mockPokerGame).postSmallBlind();
+        doNothing().when(mockPokerGame).postBigBlind();
         doNothing().when(mockPokerGame).notifyGameState(ClientOperation.DEAL);
         doNothing().when(mockPokerGame).notifyPlayers(ClientOperation.DEAL);
         doNothing().when(creator).dealCard(any());
@@ -185,8 +185,8 @@ class PokerGameTest {
 
         assertEquals(BettingRound.PRE_FLOP, mockPokerGame.bettingRound);
         verify(mockPokerGame.deck, times(1)).shuffle();
-        verify(mockPokerGame, times(1)).paySmallBlind();
-        verify(mockPokerGame, times(1)).payBigBlind();
+        verify(mockPokerGame, times(1)).postSmallBlind();
+        verify(mockPokerGame, times(1)).postBigBlind();
         verify(mockPokerGame, times(1)).notifyGameState(ClientOperation.DEAL);
         verify(mockPokerGame, times(1)).notifyPlayers(ClientOperation.DEAL);
         verify(creator, times(2)).dealCard(any());
@@ -205,7 +205,7 @@ class PokerGameTest {
         doNothing().when(mockPokerGame).rotateActor(false);
         doNothing().when(mockPokerGame).contributePot(BigInteger.valueOf(10));
 
-        mockPokerGame.paySmallBlind();
+        mockPokerGame.postSmallBlind();
 
         verify(mockPokerGame, times(1)).rotateActor(false);
         assertEquals(creator, mockPokerGame.smallBlindPlayer);
@@ -224,7 +224,7 @@ class PokerGameTest {
         doNothing().when(mockPokerGame).rotateActor(true);
         doNothing().when(mockPokerGame).contributePot(BigInteger.valueOf(20));
 
-        mockPokerGame.payBigBlind();
+        mockPokerGame.postBigBlind();
 
         verify(mockPokerGame, times(1)).rotateActor(true);
         assertEquals(creator, mockPokerGame.bigBlindPlayer);
@@ -656,7 +656,7 @@ class PokerGameTest {
     void Should_RotateActor_If_RoundCanNotEnd() throws GameActionException {
         PokerGame mockPokerGame = Mockito.spy(pokerGame);
         mockPokerGame.actor = creator;
-        when(mockPokerGame.canRoundEnd()).thenReturn(false);
+        when(mockPokerGame.canStartNextBettingRound()).thenReturn(false);
         doNothing().when(mockPokerGame).rotateActor(true);
 
         mockPokerGame.manageBettingRound();
@@ -668,7 +668,7 @@ class PokerGameTest {
     void Should_StartNewBettingRound_If_RoundCanEnd() throws GameActionException {
         PokerGame mockPokerGame = Mockito.spy(pokerGame);
         mockPokerGame.actor = creator;
-        when(mockPokerGame.canRoundEnd()).thenReturn(true);
+        when(mockPokerGame.canStartNextBettingRound()).thenReturn(true);
         doNothing().when(mockPokerGame).startNextBettingRound();
 
         mockPokerGame.manageBettingRound();

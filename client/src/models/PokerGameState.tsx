@@ -15,4 +15,5 @@ export interface PokerGameState {
     bigBlind: number;
     pots: number[];
     currentBet: number;
+    showdownOrder: PokerPlayerDto[];
 }

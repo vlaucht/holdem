@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 
-import {Button, Container, Flex, Group, Paper} from "@mantine/core";
+import {Button, Container, Flex, Paper} from "@mantine/core";
 import {useNavigate, useParams} from "react-router-dom";
 import {useServices} from "../../hooks/service-provider/ServiceProvider";
 import {PokerGameState} from "../../models/PokerGameState";
@@ -25,22 +25,14 @@ export const PokerGame: React.FunctionComponent = () => {
     const fetchGameState = async () => {
         try {
             const response: PokerGameState = await services.pokerService.getPokerGameState(id!);
-            console.log(response)
             setGameState(response);
         } catch (error) {
-            // TODO error toast
             navigate('/lobby');
-            console.error('Game not found:', error);
         }
     };
 
     const startGame = async () => {
-        try {
-            await services.pokerService.startGame(id!);
-        } catch (error) {
-            // TODO error toast
-            console.error('Error starting game:', error);
-        }
+        await services.pokerService.startGame(id!);
     }
 
     const updateGameState = (gameState: PokerGameState) => {
@@ -55,12 +47,46 @@ export const PokerGame: React.FunctionComponent = () => {
         });
     }
 
+    const handleShowdown = (state: PokerGameState) => {
+        console.log('handle showdown called')
+        if (state == null || state.showdownOrder == null) {
+            console.log('gameState or showdownOrder is null')
+            return;
+        }
+
+        let currentIndex = 0;
+
+        const interval = setInterval(() => {
+            if (currentIndex >= state.showdownOrder.length) {
+                clearInterval(interval);
+                return;
+            }
+
+            const currentPlayer = state.showdownOrder[currentIndex];
+            const seatIndex = state.players.findIndex((p) => p.name === currentPlayer.name);
+            console.log(currentPlayer)
+            if (seatIndex !== -1) {
+                const updatedPlayers = [...state.players];
+                console.log('updatedPlayers', updatedPlayers)
+                updatedPlayers[seatIndex] = currentPlayer;
+
+                const updatedGameState = {
+                    ...state,
+                    players: updatedPlayers,
+                };
+                console.log(updatedGameState)
+                updateGameState(updatedGameState);
+
+                currentIndex++;
+            }
+        }, 2000); // 2-second interval
+    };
+
     const leaveGame = async () => {
         try {
             await services.pokerService.leave(id!);
             navigate('/lobby');
         } catch (error) {
-            // TODO error toast
             console.error('Error leaving game:', error);
         }
     }
@@ -68,6 +94,11 @@ export const PokerGame: React.FunctionComponent = () => {
     useEffect(() => {
         services.webSocketService.subscribe(`/topic/game/${id}`, (message) => {
             console.log('game state', message)
+            if (message.operation && message.operation === 'SHOWDOWN') {
+                console.log('handle showdown')
+                handleShowdown(message);
+                return;
+            }
             updateGameState(message);
         });
 

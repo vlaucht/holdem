@@ -312,6 +312,9 @@ public class PokerHand {
      * @return true if the hand is a flush, false otherwise.
      */
     private boolean isFlush(List<Card> cards) {
+        if (cards.size() < 5) {
+            return false;
+        }
         Suit firstSuit = cards.get(0).suit();
         for (Card card : cards) {
             if (card.suit() != firstSuit) {
@@ -329,6 +332,9 @@ public class PokerHand {
      * @return true if the hand is a straight, false otherwise.
      */
     private boolean isStraight(List<Integer> ranks) {
+        if (cards.size() < 5) {
+            return false;
+        }
         for (int i = 0; i < ranks.size() - 1; i++) {
             if (ranks.get(i) != ranks.get(i + 1) + 1) {
                 return false;
